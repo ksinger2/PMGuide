@@ -378,7 +378,7 @@ Same as desktop but with a collapsible sidebar:
 - Max width: `max-w-[80%]`
 - Background: `bg-slate-100`
 - Text: `text-slate-800`
-- Border radius: `rounded-2xl rounded-tl-md` (flat top-left corner)
+- Border radius: `rounded-2xl rounded-bl-sm` (flat bottom-left corner — speech tail)
 - Padding: `px-4 py-3`
 - Avatar: Indigo circle with "PM" initials, `w-8 h-8 rounded-full bg-primary-600 text-white`
 
@@ -387,7 +387,7 @@ Same as desktop but with a collapsible sidebar:
 - Max width: `max-w-[80%]`
 - Background: `bg-primary-600`
 - Text: `text-white`
-- Border radius: `rounded-2xl rounded-tr-md` (flat top-right corner)
+- Border radius: `rounded-2xl rounded-br-sm` (flat bottom-right corner — speech tail)
 - Padding: `px-4 py-3`
 
 **Typing indicator:**

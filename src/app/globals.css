@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary-50: #EEF2FF;
+  --color-primary-100: #E0E7FF;
+  --color-primary-200: #C7D2FE;
+  --color-primary-300: #A5B4FC;
+  --color-primary-400: #818CF8;
+  --color-primary-500: #6366F1;
+  --color-primary-600: #4F46E5;
+  --color-primary-700: #4338CA;
+  --color-primary-800: #3730A3;
+  --color-primary-900: #312E81;
+  --color-primary-950: #1E1B4B;
+
+  --color-success-50: #F0FDF4;
+  --color-success-500: #22C55E;
+  --color-success-700: #15803D;
+
+  --color-warning-50: #FFFBEB;
+  --color-warning-500: #F59E0B;
+  --color-warning-700: #B45309;
+
+  --color-error-50: #FEF2F2;
+  --color-error-500: #EF4444;
+  --color-error-700: #B91C1C;
+
+  --color-info-50: #EFF6FF;
+  --color-info-500: #3B82F6;
+  --color-info-700: #1D4ED8;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  --animate-message-in: message-in 300ms ease-out;
+  --animate-slide-down: slide-down 300ms ease-out;
+  --animate-fade-in: fade-in 200ms ease-out;
+  --animate-scale-in: scale-in 200ms ease-out;
+
+  @keyframes message-in {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-down {
+    0% { opacity: 0; transform: translateY(-12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes scale-in {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+}
+
+body {
+  background: #F8FAFC;
+  color: #1E293B;
+}

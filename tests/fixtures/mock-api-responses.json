@@ -1,0 +1,103 @@
+{
+  "chat": {
+    "greeting": {
+      "role": "assistant",
+      "content": "Hi! I'm your PM career guide. Let's start by getting to know you. What's your name?"
+    },
+    "followUp": {
+      "role": "assistant",
+      "content": "Great to meet you! What's your current role and company?"
+    },
+    "skillsProbe": {
+      "role": "assistant",
+      "content": "On a scale of 1-5, how would you rate your product strategy skills?"
+    }
+  },
+  "profile": {
+    "empty": {
+      "name": null,
+      "currentRole": null,
+      "currentCompany": null,
+      "yearsExperience": null,
+      "companyTypes": null,
+      "productsShipped": null,
+      "keyMetrics": null,
+      "frameworks": null,
+      "skillsAssessment": null,
+      "goalRole": null,
+      "industryPreferences": null,
+      "companyStagePreferences": null,
+      "workStylePreferences": null,
+      "learningStyle": null
+    },
+    "partial": {
+      "name": "Alice Johnson",
+      "currentRole": "Product Manager",
+      "currentCompany": "Acme Corp",
+      "yearsExperience": 5,
+      "companyTypes": ["B2B", "SaaS"],
+      "productsShipped": null,
+      "keyMetrics": null,
+      "frameworks": null,
+      "skillsAssessment": null,
+      "goalRole": "Senior PM",
+      "industryPreferences": null,
+      "companyStagePreferences": null,
+      "workStylePreferences": null,
+      "learningStyle": null
+    },
+    "complete": {
+      "name": "Alice Johnson",
+      "currentRole": "Product Manager",
+      "currentCompany": "Acme Corp",
+      "yearsExperience": 5,
+      "companyTypes": ["B2B", "SaaS"],
+      "productsShipped": [
+        {
+          "name": "Dashboard v2",
+          "description": "Rebuilt analytics dashboard",
+          "impact": "40% increase in daily active usage"
+        }
+      ],
+      "keyMetrics": ["DAU", "Revenue", "NPS"],
+      "frameworks": ["RICE", "Jobs-to-be-Done"],
+      "skillsAssessment": {
+        "productStrategy": 4,
+        "userResearch": 3,
+        "dataAnalysis": 4,
+        "technicalDepth": 3,
+        "stakeholderManagement": 5,
+        "executionDelivery": 4,
+        "leadership": 3,
+        "communication": 5
+      },
+      "goalRole": "Senior PM",
+      "industryPreferences": ["FinTech", "HealthTech"],
+      "companyStagePreferences": ["Series B", "Growth"],
+      "workStylePreferences": "Collaborative, async-first",
+      "learningStyle": "example-based"
+    }
+  },
+  "resume": {
+    "critiqueResponse": {
+      "overallScore": 72,
+      "sections": [
+        {
+          "name": "Summary",
+          "score": 65,
+          "feedback": "Your summary is too generic. Lead with your strongest PM outcome."
+        },
+        {
+          "name": "Experience",
+          "score": 78,
+          "feedback": "Good use of metrics. Consider reordering bullets by impact."
+        }
+      ],
+      "topSuggestions": [
+        "Add quantified impact to every bullet point",
+        "Tailor the summary to your target role",
+        "Remove outdated skills that are no longer relevant"
+      ]
+    }
+  }
+}

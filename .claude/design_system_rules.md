@@ -2,24 +2,25 @@
 
 ## Color Tokens
 
-### Primary Palette - Professional Blue
-A trust-building blue palette that signals competence and reliability, appropriate for a career development tool.
+### Primary Palette - Indigo
+A distinctive indigo palette that balances professionalism with personality, appropriate for a career development tool. Aligned with DESIGN_SYSTEM.md (source of truth).
 
-| Token | Light Mode | Dark Mode | Usage |
-|---|---|---|---|
-| `--color-primary-50` | `#EFF6FF` | `#1E3A5F` | Subtle backgrounds, hover states |
-| `--color-primary-100` | `#DBEAFE` | `#1E40AF` | Selected states, active backgrounds |
-| `--color-primary-200` | `#BFDBFE` | `#1D4ED8` | Borders, dividers on primary elements |
-| `--color-primary-300` | `#93C5FD` | `#2563EB` | Icons, secondary text on dark |
-| `--color-primary-400` | `#60A5FA` | `#3B82F6` | Interactive elements hover |
-| `--color-primary-500` | `#3B82F6` | `#60A5FA` | Primary buttons, links, key actions |
-| `--color-primary-600` | `#2563EB` | `#93C5FD` | Primary button hover, emphasis |
-| `--color-primary-700` | `#1D4ED8` | `#BFDBFE` | Active/pressed states |
-| `--color-primary-800` | `#1E40AF` | `#DBEAFE` | High-emphasis text on light backgrounds |
-| `--color-primary-900` | `#1E3A5F` | `#EFF6FF` | Headings, maximum contrast |
+| Token | Light Mode | Usage |
+|---|---|---|
+| `--color-primary-50` | `#EEF2FF` | Subtle backgrounds, hover states |
+| `--color-primary-100` | `#E0E7FF` | Selected states, active backgrounds |
+| `--color-primary-200` | `#C7D2FE` | Borders, dividers on primary elements |
+| `--color-primary-300` | `#A5B4FC` | Icons, secondary text on dark |
+| `--color-primary-400` | `#818CF8` | Interactive elements hover |
+| `--color-primary-500` | `#6366F1` | Primary buttons, links, key actions |
+| `--color-primary-600` | `#4F46E5` | Primary button hover, emphasis |
+| `--color-primary-700` | `#4338CA` | Active/pressed states |
+| `--color-primary-800` | `#3730A3` | High-emphasis text on light backgrounds |
+| `--color-primary-900` | `#312E81` | Headings, maximum contrast |
+| `--color-primary-950` | `#1E1B4B` | Darkest backgrounds |
 
-### Secondary Palette - Warm Accent
-A warm accent palette for highlights, progress indicators, and celebratory moments.
+### Secondary Palette - Warm Accent (Optional for MVP)
+A warm accent palette for highlights, progress indicators, and celebratory moments. Not required for initial build.
 
 | Token | Light Mode | Dark Mode | Usage |
 |---|---|---|---|
@@ -32,23 +33,23 @@ A warm accent palette for highlights, progress indicators, and celebratory momen
 | `--color-accent-600` | `#EA580C` | `#FDBA74` | Accent hover |
 | `--color-accent-700` | `#C2410C` | `#FED7AA` | Active accent |
 
-### Neutral Grays
-Used for text, backgrounds, borders, and structural elements.
+### Neutral — Slate
+Used for text, backgrounds, borders, and structural elements. Aligned with Tailwind's Slate scale (DESIGN_SYSTEM.md source of truth).
 
-| Token | Light Mode | Dark Mode | Usage |
-|---|---|---|---|
-| `--color-neutral-0` | `#FFFFFF` | `#09090B` | Page background |
-| `--color-neutral-50` | `#FAFAFA` | `#18181B` | Card backgrounds, subtle surfaces |
-| `--color-neutral-100` | `#F4F4F5` | `#27272A` | Input backgrounds, secondary surfaces |
-| `--color-neutral-200` | `#E4E4E7` | `#3F3F46` | Borders, dividers |
-| `--color-neutral-300` | `#D4D4D8` | `#52525B` | Disabled borders |
-| `--color-neutral-400` | `#A1A1AA` | `#71717A` | Placeholder text, disabled text |
-| `--color-neutral-500` | `#71717A` | `#A1A1AA` | Secondary text, captions |
-| `--color-neutral-600` | `#52525B` | `#D4D4D8` | Body text secondary |
-| `--color-neutral-700` | `#3F3F46` | `#E4E4E7` | Body text primary |
-| `--color-neutral-800` | `#27272A` | `#F4F4F5` | Headings |
-| `--color-neutral-900` | `#18181B` | `#FAFAFA` | Maximum contrast text |
-| `--color-neutral-950` | `#09090B` | `#FFFFFF` | Inverse surfaces |
+| Token | Light Mode | Usage |
+|---|---|---|
+| `--color-neutral-0` | `#FFFFFF` | Page background |
+| `--color-neutral-50` | `#F8FAFC` | Card backgrounds, subtle surfaces |
+| `--color-neutral-100` | `#F1F5F9` | Input backgrounds, secondary surfaces |
+| `--color-neutral-200` | `#E2E8F0` | Borders, dividers |
+| `--color-neutral-300` | `#CBD5E1` | Disabled borders, placeholder text |
+| `--color-neutral-400` | `#94A3B8` | Muted text, secondary icons |
+| `--color-neutral-500` | `#64748B` | Secondary text, captions |
+| `--color-neutral-600` | `#475569` | Body text |
+| `--color-neutral-700` | `#334155` | Headings, strong text |
+| `--color-neutral-800` | `#1E293B` | Primary text |
+| `--color-neutral-900` | `#0F172A` | Maximum contrast text |
+| `--color-neutral-950` | `#020617` | Near-black |
 
 ### Semantic Colors
 Contextual colors for feedback, status, and system messages.
@@ -68,12 +69,8 @@ Contextual colors for feedback, status, and system messages.
 | `--color-info` | `#3B82F6` | `#60A5FA` | Info icons, text, borders |
 | `--color-info-dark` | `#1D4ED8` | `#93C5FD` | Info emphasis |
 
-### Dark Mode Support
-- Use CSS custom properties for all colors (never hardcode hex values in components)
-- Toggle dark mode via `data-theme="dark"` attribute on `<html>` or a `.dark` class
-- Persist user preference in localStorage, default to system preference via `prefers-color-scheme`
-- Ensure all color pairs maintain WCAG AA contrast ratios in both modes
-- Test all semantic colors in both light and dark themes
+### Dark Mode
+**Out of scope for MVP.** Light mode only. Use Tailwind tokens so dark mode can be added later with `dark:` variants.
 
 ---
 
@@ -153,7 +150,7 @@ The primary interaction component for the About Me chatbot and any conversationa
 ```
 - Background: var(--color-primary-500)
 - Text color: #FFFFFF
-- Border radius: 16px 16px 4px 16px (flat bottom-right corner)
+- Border radius: 16px 16px 16px 4px (flat bottom-right corner — speech tail)
 - Padding: 12px 16px
 - Max width: 80% of container
 - Alignment: right-aligned
@@ -166,7 +163,7 @@ The primary interaction component for the About Me chatbot and any conversationa
 ```
 - Background: var(--color-neutral-100) [light] / var(--color-neutral-800) [dark]
 - Text color: var(--color-neutral-800) [light] / var(--color-neutral-100) [dark]
-- Border radius: 16px 16px 16px 4px (flat bottom-left corner)
+- Border radius: 16px 16px 4px 16px (flat bottom-left corner — speech tail)
 - Padding: 12px 16px
 - Max width: 80% of container
 - Alignment: left-aligned
