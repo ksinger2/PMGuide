@@ -2,7 +2,8 @@ import type { UserProfile } from "@/lib/utils/profile";
 
 /**
  * Build the system prompt for resume critique.
- * This endpoint uses the quality model tier (Sonnet 4).
+ * This endpoint uses the quality model tier (Sonnet 4) at low temperature (0.2)
+ * for consistent, reproducible scoring.
  *
  * @param resumeText - Raw text extracted from the uploaded PDF
  * @param profile - The user's profile from the About Me section
@@ -32,53 +33,23 @@ ${resumeText}
 
 Analyze this PM resume and produce a structured JSON critique. You are reviewing for a candidate who is targeting a "${targetRole}" role with ${yearsExp} years of experience.
 
-## Evaluation Categories
+## Your Task Details
 
-Score each category from 0-100:
+You are analyzing for a candidate targeting a "${targetRole}" role with ${yearsExp} years of experience.
+Profile mentions frameworks: ${frameworks}
+Profile mentions metrics: ${keyMetrics}
 
-### 1. Impact & Metrics (impact_metrics)
-- Are outcomes quantified with specific numbers?
-- Do bullets show RESULTS, not just activities?
-- Are metrics meaningful for the PM level? (APM: feature-level metrics; VP: business/portfolio metrics)
-- The Impact Formula: [Action verb] + [what you did] + [for whom] + [measurable result]
-- Flag any bullet that describes a task without an outcome
+**IMPORTANT: Do NOT assign scores. Only identify findings with severities. Scores will be computed from your findings automatically.**
 
-### 2. PM-Specific Language (pm_language)
-- Does the resume speak the PM dialect? (roadmap, prioritization, stakeholders, discovery, validation)
-- Are strong PM action verbs used? (Defined, Drove, Launched, Led, Shipped, Spearheaded)
-- Are weak verbs flagged? (Managed, Worked on, Helped, Assisted, Was responsible for, Participated in)
-- Does the resume demonstrate product THINKING, not just project MANAGEMENT?
+For each issue you find, assign it to one of these 6 categories:
+- **impact_metrics** — Are bullets outcome-driven with quantified results? Impact Formula: [Action verb] + [what you did] + [for whom] + [measurable result]
+- **pm_language** — Does it use PM-specific verbs (Defined, Drove, Launched, Led, Shipped) vs weak verbs (Managed, Helped, Supported)?
+- **relevance** — Does content match the target seniority level and role?
+- **clarity** — Are bullets scannable in 6-8 seconds? No filler, no walls of text?
+- **structure** — Correct length for level? Logical section order? Most impactful content first?
+- **completeness** — All PM competencies covered (strategy, execution, analytics, leadership, technical)? Career narrative clear?
 
-### 3. Relevance (relevance)
-- Is content tailored to the target role level?
-- Does seniority of language match the target level?
-- APM bullets should show execution and learning
-- PM bullets should show ownership and impact
-- Senior PM bullets should show strategy and influence
-- Director+ bullets should show organization building and business growth
-
-### 4. Clarity & Conciseness (clarity)
-- Are bullets scannable in 6 seconds?
-- Is there filler or redundancy?
-- Are bullets the right length? (1-2 lines each)
-- Is the summary compelling and specific?
-
-### 5. Structure (structure)
-- Is the hierarchy right? Most important content first?
-- Is the resume the right length for the level?
-  - APM: 1 page strictly
-  - PM: 1 page preferred, 1.5 max
-  - Senior PM: 1.5-2 pages
-  - Director/VP: 2 pages
-- Are sections in a logical order?
-
-### 6. Completeness (completeness)
-- Are key PM competencies represented?
-- Is there a clear career narrative?
-- Are there unexplained gaps?
-- Profile mentions these frameworks: ${frameworks}
-- Profile mentions these metrics: ${keyMetrics}
-- Are any profile strengths missing from the resume?
+---
 
 ## Critical Rules
 
@@ -100,21 +71,12 @@ Score each category from 0-100:
 Return ONLY valid JSON (no markdown code fences, no commentary outside the JSON). The JSON must match this exact schema:
 
 {
-  "overallScore": <number 0-100>,
   "summary": "<2-3 sentence overview of the resume's strengths and key areas for improvement>",
-  "categoryScores": [
-    { "category": "impact_metrics", "score": <0-100>, "label": "Impact & Metrics" },
-    { "category": "pm_language", "score": <0-100>, "label": "PM-Specific Language" },
-    { "category": "relevance", "score": <0-100>, "label": "Relevance" },
-    { "category": "clarity", "score": <0-100>, "label": "Clarity & Conciseness" },
-    { "category": "structure", "score": <0-100>, "label": "Structure" },
-    { "category": "completeness", "score": <0-100>, "label": "Completeness" }
-  ],
   "findings": [
     {
       "id": "f-001",
       "severity": "high" | "medium" | "low",
-      "category": "<one of the 6 categories>",
+      "category": "<one of: impact_metrics, pm_language, relevance, clarity, structure, completeness>",
       "title": "<short description>",
       "description": "<detailed explanation with actionable advice>",
       "originalText": "<the exact text from the resume being critiqued>",
@@ -130,5 +92,7 @@ Return ONLY valid JSON (no markdown code fences, no commentary outside the JSON)
       "suggestion": "<how to incorporate it into the resume>"
     }
   ]
-}`;
+}
+
+Do NOT include "overallScore" or "categoryScores" — scores are computed automatically from your findings`;
 }

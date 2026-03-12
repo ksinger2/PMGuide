@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
+    "cheerio": "^1.2.0",
     "docx": "^9.6.1",
     "file-saver": "^2.0.5",
     "lucide-react": "^0.468.0",

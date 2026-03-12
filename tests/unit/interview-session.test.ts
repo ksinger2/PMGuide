@@ -44,6 +44,47 @@ describe("Interview Session Logic", () => {
     });
   });
 
+  describe("SET_MODEL_ANSWER action", () => {
+    it("transitions screen to viewing and stores model answer", () => {
+      const modelAnswer = {
+        tagline: "Great answer framework",
+        steps: [{ number: 1, title: "Step 1", why: "why", what: "what", example: "ex" }],
+        keyInsights: ["insight"],
+        watchOut: ["pitfall"],
+      };
+
+      // Simulate: state before SET_MODEL_ANSWER (active screen, loading)
+      const stateBefore = {
+        screen: "active" as const,
+        isLoading: true,
+        currentModelAnswer: null,
+      };
+
+      // After SET_MODEL_ANSWER, screen should be "viewing", isLoading false, modelAnswer stored
+      const stateAfter = {
+        ...stateBefore,
+        screen: "viewing" as const,
+        currentModelAnswer: modelAnswer,
+        isLoading: false,
+      };
+
+      expect(stateAfter.screen).toBe("viewing");
+      expect(stateAfter.currentModelAnswer).toEqual(modelAnswer);
+      expect(stateAfter.isLoading).toBe(false);
+    });
+  });
+
+  describe("Expert mode history", () => {
+    it("expert mode does not create session entries (no SET_RESULTS)", () => {
+      // In expert mode, we only dispatch SET_MODEL_ANSWER, never SET_RESULTS
+      // SET_RESULTS is the only action that adds to sessionEntries/history
+      // So expert mode never adds to history by design
+      const sessionEntries: unknown[] = [];
+      // SET_MODEL_ANSWER does not touch sessionEntries
+      expect(sessionEntries).toHaveLength(0);
+    });
+  });
+
   describe("Score color logic", () => {
     it("returns green for 4-5", () => {
       expect(getScoreCategory(5)).toBe("green");

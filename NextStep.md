@@ -5,25 +5,33 @@
 ---
 
 ## Last Updated
-2026-03-12 — Session 7
+2026-03-12 — Session 8
 
 ## Session Summary
-Session 7: Built the complete Interview Lab feature — replaced the chat-based interview page with a structured, multi-screen interview practice system. 4 new API routes, 10 new UI components, session hook with localStorage persistence, question bank parser, and specialist prompt builders. All tests passing.
+Session 8: Added two Interview Lab enhancements — "Watch the Expert" mode and voice input for interview answers.
 
 What was done this session:
 
-### Interview Lab (Full Feature)
-- **Phase 1 — Infrastructure:** Types (`src/types/interview.ts`), non-streaming `callChat()` in `client.ts`, 3 task overrides in `models.ts` (interview-generate/grade/model), new constants, exported helpers from `interview.ts`
-- **Phase 2 — Question Bank + Prompts:** `question-bank.ts` parses all 7 question-type markdown files for question banks at module load. `interview-lab.ts` has 3 prompt builders (question generation, grading, model answer) — all return structured JSON instructions.
-- **Phase 3 — API Routes (4 new):**
-  - `POST /api/interview/generate-question` — bank or AI-generated questions
-  - `POST /api/interview/grade` — rubric-based grading, returns validated Feedback JSON
-  - `POST /api/interview/model-answer` — step-by-step model answer, returns validated ModelAnswer JSON
-  - `GET /api/interview/questions` — returns full question bank for a type (for "I'll Pick" UI)
-- **Phase 4 — Session Hook:** `useInterviewSession` — useReducer + localStorage history persistence, category rotation, all screen transitions
-- **Phase 5 — UI Components (10 new):** interview-home, interview-mode-setup, practice-mode-setup, question-picker, active-question, results-screen, score-banner, feedback-tab, model-answer-tab, progress-bar
-- **Phase 6 — Page + Sidebar:** Full rewrite of `src/app/interview/page.tsx` with state machine (home → setup → active → analyzing → results). Sidebar changed interview from `locked: true` to `gated: true` (unlocks at 70% profile). Deleted old `interview-setup.tsx`.
-- **Phase 7 — Tests:** 15 new unit tests (question bank parser, session logic, score colors). 4 new E2E tests (home screen, practice setup, interview setup, back navigation).
+### Watch the Expert Mode (Feature A)
+- **Types:** Added `"expert"` to `InterviewMode`, `"viewing"` to `InterviewScreen` in `src/types/interview.ts`
+- **Session Hook:** Added `SET_MODEL_ANSWER` action + reducer case + `setModelAnswer` callback in `use-interview-session.ts`. Updated `isSessionComplete` to include "viewing" screen.
+- **Home Screen:** 3-column grid with amber-themed "Watch the Expert" card (`interview-home.tsx`)
+- **Expert Setup:** New `expert-mode-setup.tsx` — amber color scheme, same controls as interview setup (company, source, categories, count, question picker)
+- **Expert Viewing:** New `expert-viewing.tsx` — question card (amber accent), loading state, `ModelAnswerTab` rendering, "Show Me Another" / "End Session" actions
+- **Page Orchestration:** `interview/page.tsx` — expert setup/viewing routing + `useEffect` that auto-fetches model answer when question loads (no textarea, no grading)
+
+### Voice Input for Interview Answers (Feature B)
+- **Active Question:** Added `VoiceInput` component below textarea in `active-question.tsx`. Transcript appends to answer text. Mic button hidden if browser doesn't support Web Speech API.
+- **No changes to VoiceInput component itself** — already production-ready from chat section.
+
+### Tests
+- **Unit:** 2 new tests in `interview-session.test.ts` — `SET_MODEL_ANSWER` transition test + expert mode history test (61 total, all passing)
+- **E2E:** 3 new tests in `interview-lab.spec.ts` — expert mode card visibility, expert setup flow, voice input button visibility
+
+### Previous Session (7): Interview Lab (Full Feature)
+- 4 API routes, 10 UI components, session hook, question bank parser, specialist prompts
+- Two modes: Interview Mode + Practice Mode
+- State machine: home → setup → active → analyzing → results
 
 ### Architecture Decisions
 - **Non-streaming JSON** for all interview API routes (not SSE) — structured feedback needs complete JSON parsing
@@ -74,23 +82,24 @@ What was done this session:
 - [x] DOCX download (client-side, per branch)
 - [x] Interview resources + prompt system (7 question types, 6 companies)
 - [x] **Interview Lab** — Full structured interview practice (replaces old chat-based approach)
-  - Two modes: Interview Mode (multi-question, category rotation) + Practice Mode (single question)
-  - Four screens: Home → Setup → Active Question → Results
+  - Three modes: Interview Mode (multi-question, category rotation) + Practice Mode (single question) + Watch the Expert (observe model answers)
+  - Five screens: Home → Setup → Active Question → Results + Viewing (expert)
   - Structured JSON responses with rubric-based scoring + model answers
   - Question bank parsed from markdown (112+ real questions across 7 types)
   - Three question sources: AI-Generated, From Real Bank, I'll Pick
   - Parallel grade + model answer API calls
   - Session history with score tracking (localStorage)
   - 7 specialist agents with company-specific context
+  - Voice input (Web Speech API) on answer textarea for interview/practice modes
 - [x] Resume flow state persists to localStorage
-- [x] Vitest unit tests — 59/59 passing
-- [x] Playwright E2E tests — 66/68 passing (2 pre-existing mobile failures)
+- [x] Vitest unit tests — 61/61 passing
+- [x] Playwright E2E tests — needs re-run (3 new tests added for expert mode + voice)
 - [x] Production build succeeds with all routes
 - [x] `/reinit` command exists with full agent team (8 agents)
 
 ### What's NOT Done
 - [ ] **CRITICAL: Resume scoring consistency** — Same resume gets wildly different scores on consecutive analyses (e.g., 60% impact on one run, 85% on the next). This is unreliable and untrustworthy. Needs an AI engineering plan to fix. See Priority #1 below.
-- [ ] **Live manual testing** — Full interview lab flow with real API calls (Practice mode + Interview mode)
+- [ ] **Live manual testing** — Full interview lab flow with real API calls (Practice mode + Interview mode + Expert mode)
 - [ ] **E2E tests for scoring consistency** — Verify critique scores are stable across runs
 - [ ] Outreach section (Coming Soon stub exists)
 - [ ] Negotiate section (Coming Soon stub exists)
@@ -147,18 +156,18 @@ Build out remaining Coming Soon stubs.
 - Token budget: no sliding window for long conversations yet
 - Should branch chat history have a max length? (currently capped at 20 messages)
 - Interview Lab: should infinite mode have a session summary at the end?
-- Interview Lab: should voice input be added to the answer textarea?
+- Interview Lab: voice input added to answer textarea (Session 8) — done
 
 ## Notes for Specific Agents
 
 ### Product Manager
-Interview Lab is live with two modes (Interview + Practice), structured scoring, and model answers. The old chat-based interview is gone — replaced with a proper screen flow. Next priority: the scoring consistency problem is a trust-killer and needs to be fixed before any user testing.
+Interview Lab is live with three modes (Interview + Practice + Watch the Expert), structured scoring, model answers, and voice input. The old chat-based interview is gone — replaced with a proper screen flow. Next priority: the scoring consistency problem is a trust-killer and needs to be fixed before any user testing.
 
 ### UX Designer
-Interview Lab has 4 screens: Home (mode cards + history), Setup (company/type/source selectors), Active Question (progress bar, question box, answer textarea with word count), Results (score banner, 3-tab panel for feedback/model answer/my answer). Company badges + type badges throughout. Practice mode uses green accent, Interview mode uses indigo.
+Interview Lab has 5 screens: Home (3 mode cards + history), Setup (company/type/source selectors), Active Question (progress bar, question box, answer textarea with word count + voice input), Results (score banner, 3-tab panel for feedback/model answer/my answer), Viewing (expert mode — question + model answer only). Company badges + type badges throughout. Practice mode uses green accent, Interview mode uses indigo, Expert mode uses amber.
 
 ### Frontend Engineer
-Key patterns: `useInterviewSession` hook follows the same useReducer + localStorage + isHydrated pattern as `useBranches`. Screen state machine in page.tsx dispatches to different components. `callChat()` is the new non-streaming counterpart to `streamChat()` — same error handling, returns Promise<string>. Question picker fetches from GET endpoint and supports both checkbox (multi) and radio (single) modes.
+Key patterns: `useInterviewSession` hook follows the same useReducer + localStorage + isHydrated pattern as `useBranches`. Screen state machine in page.tsx dispatches to different components. Expert mode adds `SET_MODEL_ANSWER` action + "viewing" screen — auto-fetches model answer via useEffect when question loads (no user answer step). `VoiceInput` from chat section reused in `active-question.tsx` — appends transcript to textarea. `callChat()` is the new non-streaming counterpart to `streamChat()` — same error handling, returns Promise<string>. Question picker fetches from GET endpoint and supports both checkbox (multi) and radio (single) modes.
 
 ### Backend Engineer
 4 new API routes under `/api/interview/`. All use `callChat()` (non-streaming) and return JSON. Grade and model-answer routes validate AI responses against expected schemas. `stripFences()` handles markdown code fence removal. Question bank is parsed at module load from markdown files — no database needed.
@@ -175,4 +184,4 @@ Playwright config: 2 workers max (WSL2 can't handle more with dev server), expec
 Interview question bank has 112+ questions across 7 categories, parsed from the resource markdown files. Model answer format: tagline + steps (WHY/WHAT/EXAMPLE) + insights + watch-outs. This teaches transferable understanding, not memorization.
 
 ### QA Engineer
-All tests passing: 59 unit (Vitest), 66 E2E (Playwright). New interview tests cover: home screen rendering, practice mode setup flow, interview mode setup flow, back navigation. Key test pattern: seed `pmguide-profile` in `addInitScript` with raw UserProfile object (NOT wrapped in `{profile, completeness}`). 2 pre-existing mobile failures: branch tab close button intercepted by mobile-nav z-index.
+All tests passing: 61 unit (Vitest), E2E needs re-run. New Session 8 tests: `SET_MODEL_ANSWER` reducer transition, expert mode history isolation, expert mode card visibility E2E, expert setup flow E2E, voice input button E2E. Key test pattern: seed `pmguide-profile` in `addInitScript` with raw UserProfile object (NOT wrapped in `{profile, completeness}`). 2 pre-existing mobile failures: branch tab close button intercepted by mobile-nav z-index.

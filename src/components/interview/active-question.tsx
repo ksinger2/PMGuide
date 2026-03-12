@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Question, SessionConfig } from "@/types/interview";
 import type { InterviewQuestionType } from "@/lib/prompts/interview";
 import { ProgressBar } from "./progress-bar";
+import { VoiceInput } from "@/components/chat/voice-input";
 
 interface ActiveQuestionProps {
   question: Question | null;
@@ -117,6 +118,17 @@ export function ActiveQuestion({
             className="w-full resize-y rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
             data-testid="answer-textarea"
           />
+          <div className="mt-2 flex items-center gap-3">
+            <VoiceInput
+              onTranscript={(text) => {
+                const separator = answer && !answer.endsWith(" ") ? " " : "";
+                onAnswerChange(answer + separator + text);
+              }}
+            />
+            <span className="text-xs text-slate-400">
+              Speak your answer — just like a real interview
+            </span>
+          </div>
           <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
             <span>
               {words} words · {speakingTime(words)} speaking time

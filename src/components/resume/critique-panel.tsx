@@ -9,42 +9,16 @@ import {
   ChevronUp,
   Sparkles,
   Loader2,
+  Check,
+  X,
 } from "lucide-react";
 import { useProfile } from "@/stores/profile-context";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface CategoryScore {
-  category: string;
-  score: number;
-  label: string;
-}
-
-interface Finding {
-  id: string;
-  severity: "high" | "medium" | "low";
-  category: string;
-  title: string;
-  description: string;
-  originalText?: string;
-  suggestedText?: string;
-  sectionRef?: string;
-}
-
-interface CritiqueResult {
-  overallScore: number;
-  summary: string;
-  categoryScores: CategoryScore[];
-  findings: Finding[];
-  strengths: string[];
-  profileSuggestions?: Array<{
-    field: string;
-    value: string;
-    suggestion: string;
-  }>;
-}
+import {
+  validateCritiqueResult,
+  CATEGORY_WEIGHTS,
+  type CritiqueResult,
+  type Finding,
+} from "@/lib/resume/score-utils";
 
 interface CritiquePanelProps {
   resumeId: string;
@@ -141,42 +115,94 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-function FindingCard({ finding }: { finding: Finding }) {
+function FindingCard({
+  finding,
+  onAccept,
+  onReject,
+}: {
+  finding: Finding;
+  onAccept?: (id: string) => void;
+  onReject?: (id: string) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const config = severityConfig[finding.severity];
+  const status = finding.status ?? "accepted";
+  const hasSuggestion = !!finding.suggestedText;
+  const isRejected = status === "rejected";
 
   return (
     <div
-      className={`rounded-lg border ${config.border} ${config.bg} p-4`}
+      className={`rounded-lg border ${
+        isRejected
+          ? "border-red-200 bg-red-50/40 opacity-60"
+          : status === "accepted"
+            ? `${config.border} ${config.bg}`
+            : `${config.border} ${config.bg}`
+      } p-4`}
       data-testid={`finding-${finding.id}`}
     >
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-start justify-between text-left"
-      >
-        <div className="flex items-start gap-3">
-          <AlertTriangle size={16} className={`mt-0.5 shrink-0 ${config.icon}`} />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-slate-800">
-                {finding.title}
-              </span>
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.badge}`}
-              >
-                {config.label}
-              </span>
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex flex-1 items-start justify-between text-left"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={16} className={`mt-0.5 shrink-0 ${config.icon}`} />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${isRejected ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                  {finding.title}
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.badge}`}
+                >
+                  {config.label}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">{finding.category}</p>
             </div>
-            <p className="mt-1 text-xs text-slate-500">{finding.category}</p>
           </div>
-        </div>
-        {expanded ? (
-          <ChevronUp size={16} className="mt-0.5 shrink-0 text-slate-400" />
-        ) : (
-          <ChevronDown size={16} className="mt-0.5 shrink-0 text-slate-400" />
+          {expanded ? (
+            <ChevronUp size={16} className="mt-0.5 shrink-0 text-slate-400" />
+          ) : (
+            <ChevronDown size={16} className="mt-0.5 shrink-0 text-slate-400" />
+          )}
+        </button>
+
+        {hasSuggestion && (
+          <div className="flex shrink-0 gap-1">
+            <button
+              type="button"
+              onClick={() => onAccept?.(finding.id)}
+              disabled={status === "accepted"}
+              className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+                status === "accepted"
+                  ? "bg-green-500 text-white"
+                  : "bg-slate-100 text-slate-400 hover:bg-green-100 hover:text-green-600"
+              }`}
+              aria-label="Accept suggestion"
+              data-testid={`finding-accept-${finding.id}`}
+            >
+              <Check size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onReject?.(finding.id)}
+              disabled={status === "rejected"}
+              className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+                status === "rejected"
+                  ? "bg-red-500 text-white"
+                  : "bg-slate-100 text-slate-400 hover:bg-red-100 hover:text-red-600"
+              }`}
+              aria-label="Reject suggestion"
+              data-testid={`finding-reject-${finding.id}`}
+            >
+              <X size={14} />
+            </button>
+          </div>
         )}
-      </button>
+      </div>
 
       {expanded && (
         <div className="mt-3 space-y-3 pl-7">
@@ -185,7 +211,7 @@ function FindingCard({ finding }: { finding: Finding }) {
           {finding.originalText && (
             <div className="rounded-md bg-white/60 p-3">
               <p className="text-xs font-medium text-slate-500">Original</p>
-              <p className="mt-1 text-sm text-slate-600 line-through">
+              <p className={`mt-1 text-sm text-slate-600 ${status === "accepted" ? "line-through" : ""}`}>
                 {finding.originalText}
               </p>
             </div>
@@ -194,7 +220,7 @@ function FindingCard({ finding }: { finding: Finding }) {
           {finding.suggestedText && (
             <div className="rounded-md bg-white/60 p-3">
               <p className="text-xs font-medium text-green-600">Suggested</p>
-              <p className="mt-1 text-sm text-slate-800">
+              <p className={`mt-1 text-sm text-slate-800 ${isRejected ? "line-through" : ""}`}>
                 {finding.suggestedText}
               </p>
             </div>
@@ -220,6 +246,7 @@ export function CritiquePanel({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rawText, setRawText] = useState("");
+  const [findingStatuses, setFindingStatuses] = useState<Record<string, "accepted" | "rejected">>({});
 
   const runCritique = useCallback(async () => {
     setIsLoading(true);
@@ -289,9 +316,16 @@ export function CritiquePanel({
       }
 
       try {
-        const result = JSON.parse(jsonStr) as CritiqueResult;
+        const raw = JSON.parse(jsonStr);
+        const result = validateCritiqueResult(raw);
         setCritique(result);
-        onCritiqueComplete?.(result.findings);
+        // Default all findings to accepted
+        const initialStatuses: Record<string, "accepted" | "rejected"> = {};
+        for (const f of result.findings) {
+          initialStatuses[f.id] = "accepted";
+        }
+        setFindingStatuses(initialStatuses);
+        onCritiqueComplete?.(result.findings.map(f => ({ ...f, status: "accepted" })));
       } catch {
         setError(
           "Failed to parse critique results. The AI response was not valid JSON."
@@ -430,10 +464,18 @@ export function CritiquePanel({
           Category Breakdown
         </h3>
         <div className="mt-4 space-y-3">
-          {critique.categoryScores.map((cat) => (
+          {critique.categoryScores.map((cat) => {
+            const weight = CATEGORY_WEIGHTS[cat.category];
+            const weightPct = weight ? `${Math.round(weight * 100)}%` : "";
+            return (
             <div key={cat.category}>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">{cat.label}</span>
+                <span className="text-slate-600">
+                  {cat.label}
+                  {weightPct && (
+                    <span className="ml-1.5 text-xs text-slate-400">({weightPct})</span>
+                  )}
+                </span>
                 <span className={`font-medium ${scoreColor(cat.score)}`}>
                   {cat.score}/100
                 </span>
@@ -445,7 +487,8 @@ export function CritiquePanel({
                 />
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -468,23 +511,96 @@ export function CritiquePanel({
       )}
 
       {/* Findings */}
-      {critique.findings.length > 0 && (
-        <div>
-          <h3 className="mb-3 text-sm font-semibold text-slate-800">
-            Findings ({critique.findings.length})
-          </h3>
-          <div className="space-y-3">
-            {critique.findings
-              .sort((a, b) => {
-                const order = { high: 0, medium: 1, low: 2 };
-                return order[a.severity] - order[b.severity];
-              })
-              .map((finding) => (
-                <FindingCard key={finding.id} finding={finding} />
+      {critique.findings.length > 0 && (() => {
+        const sortedFindings = [...critique.findings].sort((a, b) => {
+          const order = { high: 0, medium: 1, low: 2 };
+          return order[a.severity] - order[b.severity];
+        });
+        const withSuggestions = sortedFindings.filter(f => f.suggestedText);
+        const acceptedCount = withSuggestions.filter(f => findingStatuses[f.id] === "accepted").length;
+        const rejectedCount = withSuggestions.filter(f => findingStatuses[f.id] === "rejected").length;
+
+        const handleAccept = (id: string) => {
+          setFindingStatuses(prev => {
+            const next = { ...prev, [id]: "accepted" as const };
+            onCritiqueComplete?.(critique.findings.map(f => ({ ...f, status: next[f.id] ?? "accepted" })));
+            return next;
+          });
+        };
+
+        const handleReject = (id: string) => {
+          setFindingStatuses(prev => {
+            const next = { ...prev, [id]: "rejected" as const };
+            onCritiqueComplete?.(critique.findings.map(f => ({ ...f, status: next[f.id] ?? "accepted" })));
+            return next;
+          });
+        };
+
+        const handleAcceptAll = () => {
+          setFindingStatuses(prev => {
+            const next = { ...prev };
+            for (const f of withSuggestions) next[f.id] = "accepted";
+            onCritiqueComplete?.(critique.findings.map(f => ({ ...f, status: next[f.id] ?? "accepted" })));
+            return next;
+          });
+        };
+
+        const handleRejectAll = () => {
+          setFindingStatuses(prev => {
+            const next = { ...prev };
+            for (const f of withSuggestions) next[f.id] = "rejected";
+            onCritiqueComplete?.(critique.findings.map(f => ({ ...f, status: next[f.id] ?? "accepted" })));
+            return next;
+          });
+        };
+
+        return (
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-800">
+                Findings ({critique.findings.length})
+                {withSuggestions.length > 0 && (
+                  <span className="ml-2 text-xs font-normal text-slate-500">
+                    {acceptedCount} accepted · {rejectedCount} rejected
+                  </span>
+                )}
+              </h3>
+              {withSuggestions.length > 1 && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAcceptAll}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-green-700 transition-colors hover:bg-green-50"
+                    data-testid="findings-accept-all"
+                  >
+                    <Check size={12} />
+                    Accept All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRejectAll}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50"
+                    data-testid="findings-reject-all"
+                  >
+                    <X size={12} />
+                    Reject All
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-3">
+              {sortedFindings.map((finding) => (
+                <FindingCard
+                  key={finding.id}
+                  finding={{ ...finding, status: findingStatuses[finding.id] ?? "accepted" }}
+                  onAccept={handleAccept}
+                  onReject={handleReject}
+                />
               ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Re-run */}
       <div className="text-center">

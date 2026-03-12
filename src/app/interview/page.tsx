@@ -5,7 +5,9 @@ import { SectionHeader } from "@/components/layout/section-header";
 import { InterviewHome } from "@/components/interview/interview-home";
 import { InterviewModeSetup } from "@/components/interview/interview-mode-setup";
 import { PracticeModeSetup } from "@/components/interview/practice-mode-setup";
+import { ExpertModeSetup } from "@/components/interview/expert-mode-setup";
 import { ActiveQuestion } from "@/components/interview/active-question";
+import { ExpertViewing } from "@/components/interview/expert-viewing";
 import { ResultsScreen } from "@/components/interview/results-screen";
 import { useInterviewSession } from "@/hooks/use-interview-session";
 import type { SessionConfig, Question, Feedback, ModelAnswer } from "@/types/interview";
@@ -28,6 +30,7 @@ export default function InterviewPage() {
     goHome,
     setLoading,
     setError,
+    setModelAnswer,
   } = useInterviewSession();
 
   // ---------------------------------------------------------------------------
@@ -92,6 +95,45 @@ export default function InterviewPage() {
       generateQuestion(state.config, currentType, state.questionsUsed);
     }
   }, [state.screen, state.config, currentType, state.currentQuestion, state.isLoading, state.questionsUsed, generateQuestion]);
+
+  // ---------------------------------------------------------------------------
+  // Expert mode: auto-fetch model answer when question is loaded
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (
+      state.screen === "active" &&
+      state.mode === "expert" &&
+      state.config &&
+      state.currentQuestion &&
+      !state.isLoading
+    ) {
+      // Transition to loading, then fetch model answer
+      setLoading(true);
+
+      fetch("/api/interview/model-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company: state.config.company,
+          questionType: state.currentQuestion.type,
+          question: state.currentQuestion.text,
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: "Model answer failed" }));
+            setError(err.error ?? "Failed to generate model answer");
+            return;
+          }
+          const json = await res.json();
+          setModelAnswer(json.data as ModelAnswer);
+        })
+        .catch(() => {
+          setError("Network error — could not generate model answer");
+        });
+    }
+  }, [state.screen, state.mode, state.config, state.currentQuestion, state.isLoading, setLoading, setModelAnswer, setError]);
 
   // ---------------------------------------------------------------------------
   // Submit answer → parallel grade + model answer
@@ -206,7 +248,12 @@ export default function InterviewPage() {
         <PracticeModeSetup onStart={handleStart} onBack={goHome} />
       )}
 
+      {state.screen === "setup" && state.mode === "expert" && (
+        <ExpertModeSetup onStart={handleStart} onBack={goHome} />
+      )}
+
       {(state.screen === "active" || state.screen === "analyzing") &&
+        state.mode !== "expert" &&
         state.config && (
           <ActiveQuestion
             question={state.currentQuestion}
@@ -220,6 +267,23 @@ export default function InterviewPage() {
             onDifferentQuestion={handleDifferentQuestion}
             isLoading={state.isLoading && !state.currentQuestion}
             isAnalyzing={state.screen === "analyzing"}
+          />
+        )}
+
+      {(state.screen === "active" || state.screen === "viewing") &&
+        state.mode === "expert" &&
+        state.config && (
+          <ExpertViewing
+            question={state.currentQuestion}
+            questionIndex={state.currentQuestionIndex}
+            totalQuestions={totalQuestions}
+            config={state.config}
+            currentType={currentType}
+            modelAnswer={state.currentModelAnswer}
+            isLoading={state.isLoading}
+            isSessionComplete={isSessionComplete}
+            onNextQuestion={nextQuestion}
+            onEndSession={endSession}
           />
         )}
 

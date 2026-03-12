@@ -34,7 +34,8 @@ type SessionAction =
   | { type: "HYDRATE"; payload: SessionEntry[] }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null }
-  | { type: "SET_SCREEN"; payload: InterviewScreen };
+  | { type: "SET_SCREEN"; payload: InterviewScreen }
+  | { type: "SET_MODEL_ANSWER"; payload: ModelAnswer };
 
 // ---------------------------------------------------------------------------
 // Initial state
@@ -157,6 +158,14 @@ function sessionReducer(
     case "SET_SCREEN":
       return { ...state, screen: action.payload };
 
+    case "SET_MODEL_ANSWER":
+      return {
+        ...state,
+        screen: "viewing",
+        currentModelAnswer: action.payload,
+        isLoading: false,
+      };
+
     default:
       return state;
   }
@@ -216,7 +225,7 @@ export function useInterviewSession() {
   const isSessionComplete =
     totalQuestions !== null &&
     state.currentQuestionIndex >= totalQuestions &&
-    state.screen === "results";
+    (state.screen === "results" || state.screen === "viewing");
 
   // ---------------------------------------------------------------------------
   // Actions
@@ -278,6 +287,12 @@ export function useInterviewSession() {
     []
   );
 
+  const setModelAnswer = useCallback(
+    (modelAnswer: ModelAnswer) =>
+      dispatch({ type: "SET_MODEL_ANSWER", payload: modelAnswer }),
+    []
+  );
+
   return {
     state,
     currentType,
@@ -294,5 +309,6 @@ export function useInterviewSession() {
     goHome,
     setLoading,
     setError,
+    setModelAnswer,
   };
 }

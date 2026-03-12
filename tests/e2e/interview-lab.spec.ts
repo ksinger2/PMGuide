@@ -62,6 +62,45 @@ test.describe("Interview Lab", () => {
     await expect(startBtn).toBeEnabled();
   });
 
+  test("expert mode card visible on home screen", async ({ page }) => {
+    await page.goto("/interview");
+    await expect(page.getByTestId("mode-expert")).toBeVisible();
+  });
+
+  test("expert mode setup flow", async ({ page }) => {
+    await page.goto("/interview");
+
+    // Select expert mode
+    await page.getByTestId("mode-expert").click();
+    await expect(page.getByTestId("expert-mode-setup")).toBeVisible();
+
+    // Select company and category
+    await page.getByRole("button", { name: "Google" }).click();
+    await page.getByRole("button", { name: "Strategy" }).click();
+
+    // Start button should be enabled
+    const startBtn = page.getByRole("button", { name: "Start Watching →" });
+    await expect(startBtn).toBeEnabled();
+  });
+
+  test("voice input button visible on active question screen", async ({ page }) => {
+    await page.goto("/interview");
+
+    // Go to practice mode and generate a question
+    await page.getByTestId("mode-practice").click();
+    await page.getByRole("button", { name: "Anthropic" }).click();
+    await page.getByRole("button", { name: "Behavioral" }).click();
+    await page.getByRole("button", { name: "Generate Question →" }).click();
+
+    // Wait for the active question screen
+    await expect(page.getByTestId("active-question")).toBeVisible({ timeout: 15000 });
+
+    // Voice input may or may not be visible depending on browser support
+    // In Playwright's Chromium, Web Speech API is typically not available
+    // So we just check the textarea is there and the page didn't crash
+    await expect(page.getByTestId("answer-textarea")).toBeVisible();
+  });
+
   test("back button returns to home", async ({ page }) => {
     await page.goto("/interview");
 

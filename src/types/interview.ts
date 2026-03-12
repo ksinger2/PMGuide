@@ -94,8 +94,8 @@ export interface ModelAnswer {
 // Interview session state
 // ---------------------------------------------------------------------------
 
-export type InterviewScreen = "home" | "setup" | "active" | "analyzing" | "results";
-export type InterviewMode = "interview" | "practice";
+export type InterviewScreen = "home" | "setup" | "active" | "analyzing" | "results" | "viewing";
+export type InterviewMode = "interview" | "practice" | "expert";
 
 export interface InterviewSessionState {
   screen: InterviewScreen;

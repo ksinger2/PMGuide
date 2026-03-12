@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Lock, ArrowLeft } from "lucide-react";
 import { SectionHeader } from "@/components/layout/section-header";
 import { UploadZone } from "@/components/resume/upload-zone";
 import { CritiquePanel } from "@/components/resume/critique-panel";
 import { GeneratePanel } from "@/components/resume/generate-panel";
-import { ForkPanel } from "@/components/resume/fork-panel";
+import { BranchManager } from "@/components/resume/branch-manager";
 import { useProfile } from "@/stores/profile-context";
-import { PROFILE_GATE_THRESHOLD } from "@/lib/utils/constants";
+import {
+  PROFILE_GATE_THRESHOLD,
+  RESUME_UPLOAD_KEY,
+  RESUME_CRITIQUE_KEY,
+  RESUME_GENERATE_KEY,
+} from "@/lib/utils/constants";
 
 interface UploadData {
   resumeId: string;
@@ -38,6 +43,7 @@ interface Finding {
   originalText?: string;
   suggestedText?: string;
   sectionRef?: string;
+  status?: "accepted" | "rejected";
 }
 
 interface GenerateResult {
@@ -58,9 +64,56 @@ export default function ResumePage() {
   const isLocked = state.completeness < PROFILE_GATE_THRESHOLD;
   const percentComplete = Math.round(state.completeness * 100);
 
+  // Resume flow state — start null, hydrate from localStorage via useEffect
   const [uploadData, setUploadData] = useState<UploadData | null>(null);
   const [critiqueFindings, setCritiqueFindings] = useState<Finding[] | null>(null);
   const [generateResult, setGenerateResult] = useState<GenerateResult | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate from localStorage on mount (avoids SSR mismatch)
+  useEffect(() => {
+    try {
+      const savedUpload = localStorage.getItem(RESUME_UPLOAD_KEY);
+      if (savedUpload) setUploadData(JSON.parse(savedUpload));
+    } catch { /* corrupted data */ }
+    try {
+      const savedCritique = localStorage.getItem(RESUME_CRITIQUE_KEY);
+      if (savedCritique) setCritiqueFindings(JSON.parse(savedCritique));
+    } catch { /* corrupted data */ }
+    try {
+      const savedGenerate = localStorage.getItem(RESUME_GENERATE_KEY);
+      if (savedGenerate) setGenerateResult(JSON.parse(savedGenerate));
+    } catch { /* corrupted data */ }
+    setHydrated(true);
+  }, []);
+
+  // Persist resume flow state to localStorage (skip before hydration to avoid clearing)
+  useEffect(() => {
+    if (!hydrated) return;
+    if (uploadData) {
+      localStorage.setItem(RESUME_UPLOAD_KEY, JSON.stringify(uploadData));
+    } else {
+      localStorage.removeItem(RESUME_UPLOAD_KEY);
+    }
+  }, [uploadData, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (critiqueFindings) {
+      localStorage.setItem(RESUME_CRITIQUE_KEY, JSON.stringify(critiqueFindings));
+    } else {
+      localStorage.removeItem(RESUME_CRITIQUE_KEY);
+    }
+  }, [critiqueFindings, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (generateResult) {
+      localStorage.setItem(RESUME_GENERATE_KEY, JSON.stringify(generateResult));
+    } else {
+      localStorage.removeItem(RESUME_GENERATE_KEY);
+    }
+  }, [generateResult, hydrated]);
 
   const handleCritiqueComplete = useCallback((findings: Finding[]) => {
     setCritiqueFindings(findings);
@@ -155,22 +208,30 @@ export default function ResumePage() {
               onCritiqueComplete={handleCritiqueComplete}
             />
 
-            {/* Step 3: Generate — appears after critique completes */}
+            {/* Step 4: Generate — appears after critique completes */}
             {critiqueFindings && (
               <GeneratePanel
                 resumeId={uploadData.resumeId}
                 extractedText={uploadData.extractedText}
                 sections={uploadData.sections}
-                critiqueFindings={critiqueFindings}
+                critiqueFindings={critiqueFindings.filter(f => f.status === "accepted" && f.suggestedText)}
                 onGenerateComplete={handleGenerateComplete}
               />
             )}
 
-            {/* Step 4: Fork — appears after generate completes */}
-            {generateResult && (
-              <ForkPanel
-                generatedResumeId={`${uploadData.resumeId}-gen`}
-                generateResult={generateResult}
+            {/* Step 5: Branch — available after critique */}
+            {critiqueFindings && (
+              <BranchManager
+                baseContent={
+                  generateResult?.content ?? {
+                    sections: uploadData.sections.map((s) => ({
+                      type: s.type,
+                      title: s.title,
+                      content: s.content,
+                    })),
+                    fullText: uploadData.extractedText,
+                  }
+                }
               />
             )}
           </>

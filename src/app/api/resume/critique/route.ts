@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { streamChat, AiError } from "@/lib/ai/client";
-import { getModelForTask } from "@/lib/ai/models";
+import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { createStreamResponse, textEvent } from "@/lib/ai/streaming";
 import { buildResumeCritiquePrompt } from "@/lib/prompts/resume-critique";
 import type { UserProfile } from "@/lib/utils/profile";
@@ -144,13 +144,11 @@ export async function POST(request: NextRequest) {
         content:
           "Please analyze my resume and provide a detailed critique. Return your analysis as structured JSON matching this schema:\n\n" +
           "{\n" +
-          '  "overallScore": number (0-100),\n' +
           '  "summary": string (2-3 sentence overview),\n' +
-          '  "categoryScores": [{ "category": string, "score": number, "label": string }],\n' +
           '  "findings": [{\n' +
           '    "id": string,\n' +
           '    "severity": "high" | "medium" | "low",\n' +
-          '    "category": string,\n' +
+          '    "category": "impact_metrics" | "pm_language" | "relevance" | "clarity" | "structure" | "completeness",\n' +
           '    "title": string,\n' +
           '    "description": string,\n' +
           '    "originalText"?: string,\n' +
@@ -160,15 +158,17 @@ export async function POST(request: NextRequest) {
           '  "strengths": string[] (3-5 items),\n' +
           '  "profileSuggestions": [{ "field": string, "value": string, "suggestion": string }]\n' +
           "}\n\n" +
-          "Categories to score: impact_metrics, pm_language, relevance, clarity, structure, completeness.\n" +
+          "Do NOT include overallScore or categoryScores — they are computed from findings.\n" +
           "Severity levels: high = resume will be rejected, medium = weakens resume, low = nice to have.\n" +
           "Return ONLY valid JSON, no markdown fences, no extra text.",
       },
     ];
 
-    // Stream the response
+    // Stream the response (critique uses low temperature for consistent scoring)
+    const overrides = TASK_OVERRIDES["resume-critique"];
+
     async function* generateEvents(): AsyncGenerator<string> {
-      const stream = streamChat(messages, tier, systemPrompt);
+      const stream = streamChat(messages, tier, systemPrompt, overrides);
 
       for await (const chunk of stream) {
         yield textEvent(chunk);
