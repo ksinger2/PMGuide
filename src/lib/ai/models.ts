@@ -13,13 +13,31 @@ export const MODEL_CONFIG = {
 
 export type ModelTier = keyof typeof MODEL_CONFIG;
 
+/**
+ * Per-task overrides that take precedence over the tier defaults.
+ * Critique needs low temperature for consistent scoring.
+ * Generate/fork stay at 0.7 for creative rewriting.
+ */
+export const TASK_OVERRIDES: Partial<
+  Record<string, { temperature?: number; maxTokens?: number }>
+> = {
+  "resume-critique": { temperature: 0.2 },
+  "interview-generate": { temperature: 0.8, maxTokens: 200 },
+  "interview-grade": { temperature: 0.3, maxTokens: 1200 },
+  "interview-model": { temperature: 0.5, maxTokens: 2000 },
+};
+
 export function getModelForTask(task: string): ModelTier {
   const qualityTasks = [
     "resume-critique",
     "resume-generate",
     "resume-fork",
+    "resume-branch",
     "career-advice",
     "interview",
+    "interview-generate",
+    "interview-grade",
+    "interview-model",
   ];
   return qualityTasks.includes(task) ? "quality" : "utility";
 }

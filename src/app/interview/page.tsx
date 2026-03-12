@@ -1,118 +1,244 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { SectionHeader } from "@/components/layout/section-header";
-import { InterviewSetup } from "@/components/interview/interview-setup";
-import { ChatContainer } from "@/components/chat/chat-container";
-import { INTERVIEW_STORAGE_KEY } from "@/lib/utils/constants";
-
-interface InterviewConfig {
-  company: string;
-  questionType: string;
-  feedbackMode: string;
-}
-
-const COMPANY_LABELS: Record<string, string> = {
-  anthropic: "Anthropic",
-  google: "Google",
-  meta: "Meta",
-  netflix: "Netflix",
-  openai: "OpenAI",
-  roblox: "Roblox",
-  general: "General Practice",
-};
-
-const QUESTION_TYPE_LABELS: Record<string, string> = {
-  "product-design": "Product Design",
-  "product-strategy": "Product Strategy",
-  "product-execution": "Execution",
-  "product-analytical": "Analytical",
-  "product-estimation": "Estimation",
-  "product-technical": "Technical",
-  behavioral: "Behavioral",
-};
-
-const FEEDBACK_MODE_LABELS: Record<string, string> = {
-  "after-each": "coaching after each question",
-  "end-of-session": "full simulation with debrief at the end",
-};
-
-function buildWelcomeMessage(config: InterviewConfig): string {
-  const company = COMPANY_LABELS[config.company] ?? config.company;
-  const questionType =
-    QUESTION_TYPE_LABELS[config.questionType] ?? config.questionType;
-  const feedbackDesc =
-    FEEDBACK_MODE_LABELS[config.feedbackMode] ?? config.feedbackMode;
-
-  if (config.company === "general") {
-    return `Let's practice a ${questionType} interview. I'll ask you questions and provide ${feedbackDesc}. Ready? Let's begin.`;
-  }
-
-  return `Let's practice a ${questionType} interview for ${company}. I'll ask you questions and provide ${feedbackDesc}. Ready? Let's begin.`;
-}
+import { InterviewHome } from "@/components/interview/interview-home";
+import { InterviewModeSetup } from "@/components/interview/interview-mode-setup";
+import { PracticeModeSetup } from "@/components/interview/practice-mode-setup";
+import { ActiveQuestion } from "@/components/interview/active-question";
+import { ResultsScreen } from "@/components/interview/results-screen";
+import { useInterviewSession } from "@/hooks/use-interview-session";
+import type { SessionConfig, Question, Feedback, ModelAnswer } from "@/types/interview";
+import type { InterviewQuestionType } from "@/lib/prompts/interview";
 
 export default function InterviewPage() {
-  const [mode, setMode] = useState<"setup" | "session">("setup");
-  const [config, setConfig] = useState<InterviewConfig | null>(null);
+  const {
+    state,
+    currentType,
+    totalQuestions,
+    isSessionComplete,
+    selectMode,
+    startSession,
+    setQuestion,
+    setAnswer,
+    submitAnswer,
+    setResults,
+    nextQuestion,
+    endSession,
+    goHome,
+    setLoading,
+    setError,
+  } = useInterviewSession();
 
-  const handleStart = useCallback((newConfig: InterviewConfig) => {
-    // Clear previous interview history when starting a new session
-    try {
-      localStorage.removeItem(INTERVIEW_STORAGE_KEY);
-    } catch {
-      // ignore
+  // ---------------------------------------------------------------------------
+  // Question generation
+  // ---------------------------------------------------------------------------
+
+  const generateQuestion = useCallback(
+    async (config: SessionConfig, type: InterviewQuestionType, usedIds: string[]) => {
+      // "Pick" mode: use pre-selected questions in order
+      if (config.questionMode === "pick") {
+        const idx = usedIds.length;
+        const picked = config.pickedQuestions[idx];
+        if (picked) {
+          const q: Question = {
+            id: picked.id,
+            text: picked.text,
+            type: picked.type,
+            company: config.company === "any" ? "General" : config.company,
+            source: "picked",
+          };
+          setQuestion(q);
+          return;
+        }
+      }
+
+      try {
+        const res = await fetch("/api/interview/generate-question", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            company: config.company,
+            questionType: type,
+            questionMode: config.questionMode === "pick" ? "bank" : config.questionMode,
+            usedQuestionIds: usedIds,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Failed to generate question" }));
+          setError(err.error ?? "Failed to generate question");
+          return;
+        }
+
+        const json = await res.json();
+        setQuestion(json.data as Question);
+      } catch {
+        setError("Network error — could not generate question");
+      }
+    },
+    [setQuestion, setError]
+  );
+
+  // Auto-generate question when entering active screen
+  useEffect(() => {
+    if (
+      state.screen === "active" &&
+      state.config &&
+      currentType &&
+      !state.currentQuestion &&
+      state.isLoading
+    ) {
+      generateQuestion(state.config, currentType, state.questionsUsed);
     }
-    setConfig(newConfig);
-    setMode("session");
-  }, []);
+  }, [state.screen, state.config, currentType, state.currentQuestion, state.isLoading, state.questionsUsed, generateQuestion]);
 
-  const handleEndSession = useCallback(() => {
-    setMode("setup");
-    setConfig(null);
-  }, []);
+  // ---------------------------------------------------------------------------
+  // Submit answer → parallel grade + model answer
+  // ---------------------------------------------------------------------------
 
-  if (mode === "setup") {
-    return (
-      <div data-testid="interview-page">
-        <SectionHeader
-          title="Interview Prep"
-          description="Configure your mock interview session, then practice with an AI interviewer."
-        />
-        <InterviewSetup onStart={handleStart} />
-      </div>
-    );
-  }
+  const handleSubmit = useCallback(async () => {
+    if (!state.config || !state.currentQuestion) return;
+    submitAnswer();
 
-  // Session mode
-  const companyLabel = COMPANY_LABELS[config!.company] ?? config!.company;
-  const questionTypeLabel =
-    QUESTION_TYPE_LABELS[config!.questionType] ?? config!.questionType;
+    try {
+      const [gradeRes, modelRes] = await Promise.all([
+        fetch("/api/interview/grade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            company: state.config.company,
+            questionType: state.currentQuestion.type,
+            question: state.currentQuestion.text,
+            answer: state.currentAnswer,
+          }),
+        }),
+        fetch("/api/interview/model-answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            company: state.config.company,
+            questionType: state.currentQuestion.type,
+            question: state.currentQuestion.text,
+          }),
+        }),
+      ]);
+
+      if (!gradeRes.ok || !modelRes.ok) {
+        const gradeErr = !gradeRes.ok
+          ? await gradeRes.json().catch(() => ({ error: "Grading failed" }))
+          : null;
+        const modelErr = !modelRes.ok
+          ? await modelRes.json().catch(() => ({ error: "Model answer failed" }))
+          : null;
+        setError(
+          gradeErr?.error ?? modelErr?.error ?? "Analysis failed"
+        );
+        return;
+      }
+
+      const gradeJson = await gradeRes.json();
+      const modelJson = await modelRes.json();
+      setResults(gradeJson.data as Feedback, modelJson.data as ModelAnswer);
+    } catch {
+      setError("Network error — could not analyze answer");
+    }
+  }, [state.config, state.currentQuestion, state.currentAnswer, submitAnswer, setResults, setError]);
+
+  // ---------------------------------------------------------------------------
+  // Different question
+  // ---------------------------------------------------------------------------
+
+  const handleDifferentQuestion = useCallback(() => {
+    if (!state.config || !currentType) return;
+    setLoading(true);
+    generateQuestion(state.config, currentType, state.questionsUsed);
+  }, [state.config, currentType, state.questionsUsed, setLoading, generateQuestion]);
+
+  // ---------------------------------------------------------------------------
+  // Start session
+  // ---------------------------------------------------------------------------
+
+  const handleStart = useCallback(
+    (config: SessionConfig) => {
+      startSession(config);
+    },
+    [startSession]
+  );
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   return (
     <div data-testid="interview-page">
-      <div className="mb-4 flex items-center justify-between">
-        <SectionHeader
-          title="Interview Prep"
-          description={`${questionTypeLabel} interview${config!.company !== "general" ? ` — ${companyLabel}` : ""}`}
-        />
-        <button
-          type="button"
-          onClick={handleEndSession}
-          className="shrink-0 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
-        >
-          End Session
-        </button>
-      </div>
-      <ChatContainer
-        section="interview"
-        storageKey={INTERVIEW_STORAGE_KEY}
-        welcomeMessage={buildWelcomeMessage(config!)}
-        interviewConfig={{
-          interviewCompany: config!.company,
-          interviewQuestionType: config!.questionType,
-          interviewFeedbackMode: config!.feedbackMode,
-        }}
+      <SectionHeader
+        title="Interview Lab"
+        description="Practice PM interviews with specialist AI agents"
       />
+
+      {/* Error display */}
+      {state.error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p>{state.error}</p>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="mt-2 text-xs font-medium text-red-600 hover:text-red-800"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {state.screen === "home" && (
+        <InterviewHome
+          history={state.history}
+          onSelectMode={selectMode}
+        />
+      )}
+
+      {state.screen === "setup" && state.mode === "interview" && (
+        <InterviewModeSetup onStart={handleStart} onBack={goHome} />
+      )}
+
+      {state.screen === "setup" && state.mode === "practice" && (
+        <PracticeModeSetup onStart={handleStart} onBack={goHome} />
+      )}
+
+      {(state.screen === "active" || state.screen === "analyzing") &&
+        state.config && (
+          <ActiveQuestion
+            question={state.currentQuestion}
+            questionIndex={state.currentQuestionIndex}
+            totalQuestions={totalQuestions}
+            config={state.config}
+            currentType={currentType}
+            answer={state.currentAnswer}
+            onAnswerChange={setAnswer}
+            onSubmit={handleSubmit}
+            onDifferentQuestion={handleDifferentQuestion}
+            isLoading={state.isLoading && !state.currentQuestion}
+            isAnalyzing={state.screen === "analyzing"}
+          />
+        )}
+
+      {state.screen === "results" &&
+        state.currentFeedback &&
+        state.currentModelAnswer &&
+        state.currentQuestion && (
+          <ResultsScreen
+            question={state.currentQuestion.text}
+            questionType={state.currentQuestion.type}
+            company={state.currentQuestion.company}
+            answer={state.currentAnswer}
+            feedback={state.currentFeedback}
+            modelAnswer={state.currentModelAnswer}
+            isSessionComplete={isSessionComplete}
+            onNextQuestion={nextQuestion}
+            onEndSession={endSession}
+          />
+        )}
     </div>
   );
 }

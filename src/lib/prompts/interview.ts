@@ -63,7 +63,7 @@ const QUESTION_TYPE_FILE_MAP: Record<InterviewQuestionType, string> = {
   behavioral: "Behavioral.md",
 };
 
-const QUESTION_TYPE_LABELS: Record<InterviewQuestionType, string> = {
+export const QUESTION_TYPE_LABELS: Record<InterviewQuestionType, string> = {
   "product-design": "Product Design",
   "product-strategy": "Product Strategy",
   "product-execution": "Execution",
@@ -77,17 +77,17 @@ const QUESTION_TYPE_LABELS: Record<InterviewQuestionType, string> = {
 // File loaders (read once at module load — server-side only)
 // ---------------------------------------------------------------------------
 
-function readResource(relativePath: string): string {
+export function readResource(relativePath: string): string {
   return fs.readFileSync(
     path.join(RESOURCES_DIR, relativePath),
     "utf-8"
   );
 }
 
-const skillPersona = readResource("SKILL.md");
+export const skillPersona = readResource("SKILL.md");
 const rubric = readResource("rubrics/Rubric.md");
 
-const companyGuides: Record<InterviewCompany, string> = {} as Record<
+export const companyGuides: Record<InterviewCompany, string> = {} as Record<
   InterviewCompany,
   string
 >;
@@ -97,7 +97,7 @@ for (const company of INTERVIEW_COMPANIES) {
   );
 }
 
-const questionTypeGuides: Record<InterviewQuestionType, string> =
+export const questionTypeGuides: Record<InterviewQuestionType, string> =
   {} as Record<InterviewQuestionType, string>;
 for (const qt of INTERVIEW_QUESTION_TYPES) {
   questionTypeGuides[qt] = readResource(
@@ -112,7 +112,7 @@ for (const qt of INTERVIEW_QUESTION_TYPES) {
 /**
  * Format the user's profile into a concise context block for the system prompt.
  */
-function formatProfileContext(profile: Partial<UserProfile>): string {
+export function formatProfileContext(profile: Partial<UserProfile>): string {
   const lines: string[] = [];
 
   if (profile.name) lines.push(`- **Name:** ${profile.name}`);
@@ -164,7 +164,7 @@ function formatProfileContext(profile: Partial<UserProfile>): string {
 /**
  * Extract the rubric section relevant to a question type from Rubric.md.
  */
-function extractRubricSection(
+export function extractRubricSection(
   questionType: InterviewQuestionType
 ): string {
   const sectionHeaders: Record<InterviewQuestionType, string> = {

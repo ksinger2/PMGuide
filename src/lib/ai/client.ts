@@ -28,7 +28,8 @@ export interface ChatMessage {
 export async function* streamChat(
   messages: ChatMessage[],
   tier: ModelTier,
-  systemPrompt: string
+  systemPrompt: string,
+  overrides?: { temperature?: number; maxTokens?: number }
 ): AsyncGenerator<string> {
   const client = getClient();
   const config = MODEL_CONFIG[tier];
@@ -36,8 +37,8 @@ export async function* streamChat(
   try {
     const stream = client.messages.stream({
       model: config.model,
-      max_tokens: config.maxTokens,
-      temperature: config.temperature,
+      max_tokens: overrides?.maxTokens ?? config.maxTokens,
+      temperature: overrides?.temperature ?? config.temperature,
       system: systemPrompt,
       messages: messages.map((m) => ({
         role: m.role,
@@ -53,6 +54,49 @@ export async function* streamChat(
         yield event.delta.text;
       }
     }
+  } catch (error: unknown) {
+    if (error instanceof Anthropic.APIError) {
+      if (error.status === 429) {
+        throw new AiError("AI_TIMEOUT", "Anthropic rate limit exceeded. Please try again shortly.");
+      }
+      if (error.status === 408 || error.status === 524) {
+        throw new AiError("AI_TIMEOUT", "The AI request timed out. Please try again.");
+      }
+      throw new AiError("AI_ERROR", `Anthropic API error: ${error.message}`);
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new AiError("AI_TIMEOUT", "The AI request timed out. Please try again.");
+    }
+    throw new AiError("AI_ERROR", "An unexpected AI error occurred.");
+  }
+}
+
+/**
+ * Non-streaming chat completion. Returns the full response text.
+ */
+export async function callChat(
+  messages: ChatMessage[],
+  tier: ModelTier,
+  systemPrompt: string,
+  overrides?: { temperature?: number; maxTokens?: number }
+): Promise<string> {
+  const client = getClient();
+  const config = MODEL_CONFIG[tier];
+
+  try {
+    const response = await client.messages.create({
+      model: config.model,
+      max_tokens: overrides?.maxTokens ?? config.maxTokens,
+      temperature: overrides?.temperature ?? config.temperature,
+      system: systemPrompt,
+      messages: messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+    });
+
+    const textBlocks = response.content.filter((b) => b.type === "text");
+    return textBlocks.map((b) => b.text).join("");
   } catch (error: unknown) {
     if (error instanceof Anthropic.APIError) {
       if (error.status === 429) {
