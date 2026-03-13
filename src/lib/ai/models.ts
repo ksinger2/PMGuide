@@ -21,7 +21,7 @@ export type ModelTier = keyof typeof MODEL_CONFIG;
 export const TASK_OVERRIDES: Partial<
   Record<string, { temperature?: number; maxTokens?: number }>
 > = {
-  "resume-critique": { temperature: 0.2 },
+  "resume-critique": { temperature: 0.0 },
   "interview-generate": { temperature: 0.8, maxTokens: 200 },
   "interview-grade": { temperature: 0.3, maxTokens: 1200 },
   "interview-model": { temperature: 0.5, maxTokens: 2000 },

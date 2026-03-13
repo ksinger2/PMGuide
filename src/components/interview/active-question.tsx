@@ -54,6 +54,7 @@ export function ActiveQuestion({
   isAnalyzing,
 }: ActiveQuestionProps) {
   const [showDifferent, setShowDifferent] = useState(false);
+  const [interimText, setInterimText] = useState("");
   const words = wordCount(answer);
   const canSubmit = answer.trim().length > 10 && !isLoading && !isAnalyzing;
 
@@ -110,8 +111,11 @@ export function ActiveQuestion({
       {question && !isAnalyzing && (
         <div>
           <textarea
-            value={answer}
-            onChange={(e) => onAnswerChange(e.target.value)}
+            value={answer + (interimText ? (answer && !answer.endsWith(" ") ? " " : "") + interimText : "")}
+            onChange={(e) => {
+              setInterimText("");
+              onAnswerChange(e.target.value);
+            }}
             placeholder="Type your answer here..."
             rows={8}
             disabled={isAnalyzing}
@@ -123,7 +127,9 @@ export function ActiveQuestion({
               onTranscript={(text) => {
                 const separator = answer && !answer.endsWith(" ") ? " " : "";
                 onAnswerChange(answer + separator + text);
+                setInterimText("");
               }}
+              onInterim={setInterimText}
             />
             <span className="text-xs text-slate-400">
               Speak your answer — just like a real interview

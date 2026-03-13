@@ -11,6 +11,7 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [input, setInput] = useState("");
+  const [interimText, setInterimText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Stable callback for voice transcription — only appends to textarea, never sends
@@ -19,6 +20,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
       const separator = prev && !prev.endsWith(" ") ? " " : "";
       return prev + separator + text;
     });
+    setInterimText("");
   }, []);
 
   const adjustHeight = useCallback(() => {
@@ -32,7 +34,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   // Adjust height whenever input changes (including voice appends)
   useEffect(() => {
     adjustHeight();
-  }, [input, adjustHeight]);
+  }, [input, interimText, adjustHeight]);
 
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
@@ -61,8 +63,9 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
       <textarea
         ref={textareaRef}
         data-testid="chat-input-field"
-        value={input}
+        value={input + (interimText ? (input && !input.endsWith(" ") ? " " : "") + interimText : "")}
         onChange={(e) => {
+          setInterimText("");
           setInput(e.target.value);
           adjustHeight();
         }}
@@ -73,7 +76,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         className="flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none disabled:opacity-50"
         style={{ maxHeight: "120px" }}
       />
-      <VoiceInput onTranscript={handleVoiceTranscript} />
+      <VoiceInput onTranscript={handleVoiceTranscript} onInterim={setInterimText} />
       <button
         data-testid="chat-send-button"
         onClick={handleSend}

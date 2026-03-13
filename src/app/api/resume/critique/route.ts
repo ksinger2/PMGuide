@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { streamChat, AiError } from "@/lib/ai/client";
+import { callChatWithTool, AiError, type ToolDefinition } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
-import { createStreamResponse, textEvent } from "@/lib/ai/streaming";
 import { buildResumeCritiquePrompt } from "@/lib/prompts/resume-critique";
 import type { UserProfile } from "@/lib/utils/profile";
 
@@ -77,6 +76,61 @@ function errorResponse(
 }
 
 // ---------------------------------------------------------------------------
+// Tool definition for structured critique output
+// ---------------------------------------------------------------------------
+
+const RESUME_CRITIQUE_TOOL: ToolDefinition = {
+  name: "resume_critique",
+  description: "Submit structured resume critique findings",
+  input_schema: {
+    type: "object",
+    properties: {
+      summary: { type: "string", description: "2-3 sentence overview" },
+      findings: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            severity: { type: "string", enum: ["high", "medium", "low"] },
+            category: {
+              type: "string",
+              enum: [
+                "impact_metrics",
+                "pm_language",
+                "relevance",
+                "clarity",
+                "structure",
+                "completeness",
+              ],
+            },
+            title: { type: "string" },
+            description: { type: "string" },
+            originalText: { type: "string" },
+            suggestedText: { type: "string" },
+            sectionRef: { type: "string" },
+          },
+          required: ["id", "severity", "category", "title", "description"],
+        },
+      },
+      strengths: { type: "array", items: { type: "string" } },
+      profileSuggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            field: { type: "string" },
+            suggestion: { type: "string" },
+          },
+          required: ["field", "suggestion"],
+        },
+      },
+    },
+    required: ["summary", "findings", "strengths"],
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Route handler
 // ---------------------------------------------------------------------------
 
@@ -119,7 +173,7 @@ export async function POST(request: NextRequest) {
 
     const { extractedText, profile } = parsed.data;
 
-    // Check API key before streaming
+    // Check API key
     if (!process.env.ANTHROPIC_API_KEY) {
       return errorResponse(
         "AI_ERROR",
@@ -142,40 +196,37 @@ export async function POST(request: NextRequest) {
       {
         role: "user" as const,
         content:
-          "Please analyze my resume and provide a detailed critique. Return your analysis as structured JSON matching this schema:\n\n" +
-          "{\n" +
-          '  "summary": string (2-3 sentence overview),\n' +
-          '  "findings": [{\n' +
-          '    "id": string,\n' +
-          '    "severity": "high" | "medium" | "low",\n' +
-          '    "category": "impact_metrics" | "pm_language" | "relevance" | "clarity" | "structure" | "completeness",\n' +
-          '    "title": string,\n' +
-          '    "description": string,\n' +
-          '    "originalText"?: string,\n' +
-          '    "suggestedText"?: string,\n' +
-          '    "sectionRef"?: string\n' +
-          "  }],\n" +
-          '  "strengths": string[] (3-5 items),\n' +
-          '  "profileSuggestions": [{ "field": string, "value": string, "suggestion": string }]\n' +
-          "}\n\n" +
-          "Do NOT include overallScore or categoryScores — they are computed from findings.\n" +
-          "Severity levels: high = resume will be rejected, medium = weakens resume, low = nice to have.\n" +
-          "Return ONLY valid JSON, no markdown fences, no extra text.",
+          "Please analyze my resume and provide a detailed critique. " +
+          "Use the resume_critique tool to submit your structured findings. " +
+          "Severity levels: high = resume will be rejected without this fix, " +
+          "medium = weakens the resume, low = nice to have. " +
+          "Do NOT include overallScore or categoryScores — they are computed from findings.",
       },
     ];
 
-    // Stream the response (critique uses low temperature for consistent scoring)
-    const overrides = TASK_OVERRIDES["resume-critique"];
+    // Non-streaming call with forced tool use for structured output
+    const overrides = {
+      ...TASK_OVERRIDES["resume-critique"],
+      maxTokens: 4096,
+    };
 
-    async function* generateEvents(): AsyncGenerator<string> {
-      const stream = streamChat(messages, tier, systemPrompt, overrides);
+    const toolResult = await callChatWithTool(
+      messages,
+      tier,
+      systemPrompt,
+      RESUME_CRITIQUE_TOOL,
+      overrides
+    );
 
-      for await (const chunk of stream) {
-        yield textEvent(chunk);
-      }
-    }
-
-    return createStreamResponse(generateEvents());
+    // Return the structured result as JSON
+    return NextResponse.json(
+      {
+        data: toolResult,
+        error: null,
+        meta: { timestamp: new Date().toISOString() },
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     if (error instanceof AiError) {
       const status = error.code === "AI_TIMEOUT" ? 504 : 502;

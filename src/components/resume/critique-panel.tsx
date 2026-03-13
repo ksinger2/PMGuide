@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   BarChart3,
   AlertTriangle,
@@ -19,6 +19,18 @@ import {
   type CritiqueResult,
   type Finding,
 } from "@/lib/resume/score-utils";
+import { RESUME_CRITIQUE_KEY } from "@/lib/utils/constants";
+
+// Module-level state — survives component mount/unmount cycles
+let pendingCritique: {
+  resumeId: string;
+  promise: Promise<{ result: CritiqueResult | null; error: string | null }>;
+} | null = null;
+
+let resolvedCritique: {
+  resumeId: string;
+  result: CritiqueResult;
+} | null = null;
 
 interface CritiquePanelProps {
   resumeId: string;
@@ -245,98 +257,118 @@ export function CritiquePanel({
   const [critique, setCritique] = useState<CritiqueResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rawText, setRawText] = useState("");
   const [findingStatuses, setFindingStatuses] = useState<Record<string, "accepted" | "rejected">>({});
+
+  // Clear stale module cache when resumeId changes
+  useEffect(() => {
+    if (resolvedCritique && resolvedCritique.resumeId !== resumeId) {
+      resolvedCritique = null;
+    }
+    if (pendingCritique && pendingCritique.resumeId !== resumeId) {
+      pendingCritique = null;
+    }
+  }, [resumeId]);
+
+  // Recover pending/resolved critique on mount
+  useEffect(() => {
+    if (resolvedCritique && resolvedCritique.resumeId === resumeId) {
+      setCritique(resolvedCritique.result);
+      const initialStatuses: Record<string, "accepted" | "rejected"> = {};
+      for (const f of resolvedCritique.result.findings) initialStatuses[f.id] = "accepted";
+      setFindingStatuses(initialStatuses);
+      onCritiqueComplete?.(resolvedCritique.result.findings.map(f => ({ ...f, status: "accepted" })));
+      return;
+    }
+
+    if (pendingCritique && pendingCritique.resumeId === resumeId) {
+      setIsLoading(true);
+      let cancelled = false;
+
+      pendingCritique.promise.then(({ result, error: fetchError }) => {
+        if (cancelled) return;
+        if (result) {
+          resolvedCritique = { resumeId, result };
+          setCritique(result);
+          const initialStatuses: Record<string, "accepted" | "rejected"> = {};
+          for (const f of result.findings) initialStatuses[f.id] = "accepted";
+          setFindingStatuses(initialStatuses);
+          onCritiqueComplete?.(result.findings.map(f => ({ ...f, status: "accepted" })));
+        } else {
+          setError(fetchError);
+        }
+        setIsLoading(false);
+        pendingCritique = null;
+      });
+
+      return () => { cancelled = true; };
+    }
+  }, [resumeId]);
 
   const runCritique = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    setRawText("");
     setCritique(null);
+    resolvedCritique = null;
 
-    try {
-      const res = await fetch("/api/resume/critique", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeId,
-          extractedText,
-          sections,
-          profile: state.profile ?? undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        setError(json?.error?.message ?? `Request failed (${res.status})`);
-        setIsLoading(false);
-        return;
-      }
-
-      // Read SSE stream
-      const reader = res.body?.getReader();
-      if (!reader) {
-        setError("Failed to read response stream.");
-        setIsLoading(false);
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let accumulated = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = line.slice(6);
-          if (payload === "[DONE]") continue;
-
-          try {
-            const parsed = JSON.parse(payload);
-            if (parsed.type === "text" && parsed.text) {
-              accumulated += parsed.text;
-              setRawText(accumulated);
-            }
-          } catch {
-            // Partial JSON, skip
-          }
-        }
-      }
-
-      // Parse accumulated JSON
-      // Strip markdown code fences if present
-      let jsonStr = accumulated.trim();
-      if (jsonStr.startsWith("```")) {
-        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-      }
-
+    const critiquePromise = (async (): Promise<{ result: CritiqueResult | null; error: string | null }> => {
       try {
-        const raw = JSON.parse(jsonStr);
-        const result = validateCritiqueResult(raw);
-        setCritique(result);
-        // Default all findings to accepted
-        const initialStatuses: Record<string, "accepted" | "rejected"> = {};
-        for (const f of result.findings) {
-          initialStatuses[f.id] = "accepted";
+        const res = await fetch("/api/resume/critique", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resumeId,
+            extractedText,
+            sections,
+            profile: state.profile ?? undefined,
+          }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          return { result: null, error: json?.error?.message ?? `Request failed (${res.status})` };
         }
-        setFindingStatuses(initialStatuses);
-        onCritiqueComplete?.(result.findings.map(f => ({ ...f, status: "accepted" })));
+
+        const raw = json?.data;
+        if (!raw) {
+          return { result: null, error: "Empty response from critique API." };
+        }
+
+        const result = validateCritiqueResult(raw);
+
+        // Persist to localStorage immediately (outside React lifecycle)
+        const findingsWithStatus = result.findings.map(f => ({ ...f, status: "accepted" as const }));
+        try {
+          localStorage.setItem(RESUME_CRITIQUE_KEY, JSON.stringify(findingsWithStatus));
+        } catch { /* localStorage full */ }
+
+        return { result, error: null };
       } catch {
-        setError(
-          "Failed to parse critique results. The AI response was not valid JSON."
-        );
+        return { result: null, error: "Network error. Please check your connection and try again." };
       }
-    } catch {
-      setError("Network error. Please check your connection and try again.");
-    } finally {
-      setIsLoading(false);
+    })();
+
+    pendingCritique = { resumeId, promise: critiquePromise };
+
+    const { result, error: fetchError } = await critiquePromise;
+
+    if (result) {
+      resolvedCritique = { resumeId, result };
     }
-  }, [resumeId, extractedText, sections, state.profile]);
+    pendingCritique = null;
+
+    // setState calls — safe if unmounted (React ignores them silently)
+    if (result) {
+      setCritique(result);
+      const initialStatuses: Record<string, "accepted" | "rejected"> = {};
+      for (const f of result.findings) initialStatuses[f.id] = "accepted";
+      setFindingStatuses(initialStatuses);
+      onCritiqueComplete?.(result.findings.map(f => ({ ...f, status: "accepted" })));
+    } else {
+      setError(fetchError);
+    }
+    setIsLoading(false);
+  }, [resumeId, extractedText, sections, state.profile, onCritiqueComplete]);
 
   // Initial state — show "Get Critique" button
   if (!critique && !isLoading && !error) {
@@ -380,13 +412,6 @@ export function CritiquePanel({
             Analyzing your resume with Claude Sonnet 4...
           </p>
         </div>
-        {rawText && (
-          <div className="mt-4 max-h-32 overflow-hidden rounded-md bg-slate-50 p-3">
-            <p className="text-xs text-slate-400 font-mono truncate">
-              {rawText.slice(-200)}
-            </p>
-          </div>
-        )}
       </div>
     );
   }

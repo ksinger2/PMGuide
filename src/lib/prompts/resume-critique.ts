@@ -2,7 +2,7 @@ import type { UserProfile } from "@/lib/utils/profile";
 
 /**
  * Build the system prompt for resume critique.
- * This endpoint uses the quality model tier (Sonnet 4) at low temperature (0.2)
+ * This endpoint uses the quality model tier (Sonnet 4) at temperature 0.0
  * for consistent, reproducible scoring.
  *
  * @param resumeText - Raw text extracted from the uploaded PDF
@@ -62,9 +62,41 @@ For each issue you find, assign it to one of these 6 categories:
 
 ## Severity Definitions
 
-- **high**: This will get the resume rejected. Missing metrics everywhere, wrong length for level, vague throughout. Fix before applying.
-- **medium**: This weakens the resume. Tasks described without outcomes, generic verbs, missing PM frameworks. Fix if possible.
-- **low**: Nice to have. Minor word choice, bullet reordering, consistency tweaks. Polish if time allows.
+**Severity Decision Tree (follow exactly):**
+1. Does this single issue, by itself, risk the resume being screened out by a recruiter?
+   → YES = **high** (resume will be rejected without this fix)
+   → NO, continue:
+2. Does this issue meaningfully weaken a section's persuasiveness for a PM role?
+   → YES = **medium** (weakens the resume, fix if possible)
+   → NO = **low** (polish item, nice to have)
+
+## Scoring Calibration Examples
+
+Use these as reference points when assigning severity. Match the closest example.
+
+### impact_metrics
+- **high**: "Managed product roadmap and coordinated with engineering" → No outcome, no metric, no user impact. Tells the reader nothing about results.
+- **medium**: "Launched new onboarding flow that improved user activation" → Has an outcome but no quantified metric. Needs the percentage or absolute number.
+
+### pm_language
+- **high**: "Helped the team with various projects and tasks" → Zero PM-specific language, no ownership signal, completely generic. Could describe any role.
+- **medium**: "Managed the product backlog and sprint planning" → Has PM context but uses weak verb "Managed." Reframe as "Defined sprint priorities and maintained a backlog of X features..."
+
+### relevance
+- **high**: "Designed database schema and wrote SQL migrations for the payments service" → Pure engineering work with no PM framing. Wrong role signal for a PM resume.
+- **medium**: "Built dashboards in Looker to track team velocity and sprint burndown" → Analytical value but framed as IC work, not product leadership or decision-making.
+
+### clarity
+- **high**: "Spearheaded the strategic cross-functional alignment of stakeholder synergies to drive holistic product innovation across the enterprise ecosystem" → Jargon wall, says nothing concrete. Rewrite with specific actions and outcomes.
+- **medium**: "Led initiative to improve customer satisfaction scores by working with multiple teams on a redesign project" → Understandable but vague — which teams? What redesign? What was the result?
+
+### structure
+- **high**: Resume is 4 pages with a skills matrix, objective statement, and references section → Way too long, outdated format. PM resumes should be 1-2 pages, no objective/references.
+- **medium**: Most impactful role is listed third, below two less relevant positions → Buries the lede. Reorder to lead with the strongest PM experience.
+
+### completeness
+- **high**: Resume lists one role with no education, skills, or tools section → Missing major sections. Recruiters expect a complete career narrative.
+- **medium**: No mention of data or analytics skills despite targeting a data-driven PM role → Missing a key competency area the target role requires.
 
 ## Response Format
 

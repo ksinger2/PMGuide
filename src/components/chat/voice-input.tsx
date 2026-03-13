@@ -5,6 +5,7 @@ import { Mic, MicOff } from "lucide-react";
 
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
+  onInterim?: (text: string) => void;
 }
 
 // Extend Window for vendor-prefixed SpeechRecognition
@@ -35,9 +36,10 @@ function getSpeechRecognition(): SpeechRecognitionConstructor | null {
   );
 }
 
-export function VoiceInput({ onTranscript }: VoiceInputProps) {
+export function VoiceInput({ onTranscript, onInterim }: VoiceInputProps) {
   const [isAvailable, setIsAvailable] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [localInterim, setLocalInterim] = useState("");
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const processedIndexRef = useRef<number>(0);
 
@@ -57,13 +59,13 @@ export function VoiceInput({ onTranscript }: VoiceInputProps) {
 
     const recognition = new SpeechRecognitionCtor();
     recognition.continuous = true;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.lang = "en-US";
 
     processedIndexRef.current = 0;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      // Only process newly finalized results (skip already-processed indices)
+      let interim = "";
       for (let i = processedIndexRef.current; i < event.results.length; i++) {
         const result = event.results[i];
         if (result?.isFinal) {
@@ -72,7 +74,17 @@ export function VoiceInput({ onTranscript }: VoiceInputProps) {
             onTranscript(transcript);
           }
           processedIndexRef.current = i + 1;
+          // Clear interim since this segment is finalized
+          onInterim?.("");
+          setLocalInterim("");
+        } else {
+          // Accumulate interim text from non-final results
+          interim += result[0]?.transcript ?? "";
         }
+      }
+      if (interim) {
+        onInterim?.(interim);
+        setLocalInterim(interim);
       }
     };
 
@@ -82,12 +94,14 @@ export function VoiceInput({ onTranscript }: VoiceInputProps) {
 
     recognition.onend = () => {
       setIsRecording(false);
+      onInterim?.("");
+      setLocalInterim("");
     };
 
     recognitionRef.current = recognition;
     recognition.start();
     setIsRecording(true);
-  }, [isRecording, onTranscript]);
+  }, [isRecording, onTranscript, onInterim]);
 
   // Graceful fallback: hide button if Web Speech API not available
   if (!isAvailable) return null;
@@ -100,6 +114,11 @@ export function VoiceInput({ onTranscript }: VoiceInputProps) {
           className="absolute -top-6 right-0 text-xs font-medium text-error-500"
         >
           Recording...
+        </span>
+      )}
+      {isRecording && localInterim && (
+        <span className="absolute -top-12 right-0 max-w-[200px] truncate text-xs italic text-slate-400">
+          {localInterim}
         </span>
       )}
       <button
