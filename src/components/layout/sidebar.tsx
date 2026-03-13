@@ -19,7 +19,7 @@ const navItems = [
   { href: "/resume", label: "Resume", icon: FileText, gated: true, locked: false },
   { href: "/outreach", label: "Outreach", icon: Mail, gated: false, locked: true },
   { href: "/interview", label: "Interview", icon: MessageSquare, gated: true, locked: false },
-  { href: "/negotiate", label: "Negotiate", icon: DollarSign, gated: false, locked: true },
+  { href: "/negotiate", label: "Negotiate", icon: DollarSign, gated: true, locked: false },
 ];
 
 export function Sidebar() {

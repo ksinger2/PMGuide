@@ -18,7 +18,7 @@ const navItems = [
   { href: "/resume", label: "Resume", icon: FileText, gated: true },
   { href: "/outreach", label: "Outreach", icon: Mail, locked: true },
   { href: "/interview", label: "Interview", icon: MessageSquare, locked: true },
-  { href: "/negotiate", label: "Negotiate", icon: DollarSign, locked: true },
+  { href: "/negotiate", label: "Negotiate", icon: DollarSign, gated: true },
 ];
 
 export function MobileNav() {

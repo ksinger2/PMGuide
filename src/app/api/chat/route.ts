@@ -14,6 +14,7 @@ import {
   type InterviewQuestionType,
   type FeedbackMode,
 } from "@/lib/prompts/interview";
+import { buildNegotiateCoachPrompt } from "@/lib/prompts/negotiate-coach";
 import type { UserProfile } from "@/lib/utils/profile";
 import { MAX_MESSAGE_LENGTH, CHAT_RATE_LIMIT } from "@/lib/utils/constants";
 
@@ -23,7 +24,7 @@ import { MAX_MESSAGE_LENGTH, CHAT_RATE_LIMIT } from "@/lib/utils/constants";
 
 const chatRequestSchema = z.object({
   message: z.string().min(1, "Message is required").max(MAX_MESSAGE_LENGTH),
-  section: z.enum(["about-me", "resume", "interview"]),
+  section: z.enum(["about-me", "resume", "interview", "negotiate-coach"]),
   interviewCompany: z.string().optional(),
   interviewQuestionType: z.string().optional(),
   interviewFeedbackMode: z.enum(["after-each", "end-of-session"]).optional(),
@@ -183,6 +184,10 @@ export async function POST(request: NextRequest) {
         userProfile: (profileSnapshot as Partial<UserProfile>) ?? {},
         feedbackMode: (interviewFeedbackMode as FeedbackMode) ?? "after-each",
       });
+    } else if (section === "negotiate-coach") {
+      systemPrompt = buildNegotiateCoachPrompt(
+        (profileSnapshot as Partial<UserProfile>) ?? {}
+      );
     } else {
       systemPrompt =
         "You are PMGuide, an AI career coach helping a product manager improve their resume. Be specific, actionable, and encouraging.";
@@ -203,7 +208,9 @@ export async function POST(request: NextRequest) {
         ? "resume-critique"
         : section === "interview"
           ? "interview"
-          : "about-me"
+          : section === "negotiate-coach"
+            ? "negotiate-coach"
+            : "about-me"
     );
 
     // Stream the response with a rolling buffer to catch <profile_update> tags
