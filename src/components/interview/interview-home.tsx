@@ -34,7 +34,7 @@ export function InterviewHome({ history, onSelectMode }: InterviewHomeProps) {
   return (
     <div className="space-y-8" data-testid="interview-home">
       {/* Mode selection */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => onSelectMode("interview")}
@@ -78,6 +78,22 @@ export function InterviewHome({ history, onSelectMode }: InterviewHomeProps) {
           </h3>
           <p className="mt-1 text-sm text-slate-500">
             See how a model PM structures answers. Learn by example.
+          </p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSelectMode("ask-expert")}
+          className="group rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition-all hover:border-violet-300 hover:shadow-md"
+          data-testid="mode-ask-expert"
+        >
+          <div className="mb-3 text-3xl">💡</div>
+          <h3 className="text-lg font-semibold text-slate-800 group-hover:text-violet-700">
+            Ask the Expert
+          </h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Paste any question — get a structured expert answer with the right
+            framework.
           </p>
         </button>
       </div>

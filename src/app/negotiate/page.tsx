@@ -11,6 +11,9 @@ import { ExpertViewing } from "@/components/negotiate/expert-viewing";
 import { CoachChat } from "@/components/negotiate/coach-chat";
 import { TipsBrowser } from "@/components/negotiate/tips-browser";
 import { OfferCalculator } from "@/components/negotiate/offer-calculator";
+import { CrafterSetup } from "@/components/negotiate/crafter-setup";
+import { CrafterActive } from "@/components/negotiate/crafter-active";
+import { GatedPage } from "@/components/layout/gated-page";
 import { useNegotiationSession } from "@/hooks/use-negotiation-session";
 import type { NegotiationFeedback } from "@/types/negotiation";
 
@@ -59,6 +62,7 @@ export default function NegotiatePage() {
   }, [state.screen, state.isLoading, gradeNegotiation]);
 
   return (
+    <GatedPage>
     <div data-testid="negotiate-page">
       <SectionHeader
         title="Negotiation Lab"
@@ -170,6 +174,22 @@ export default function NegotiatePage() {
           onBack={session.goHome}
         />
       )}
+
+      {state.screen === "crafter-setup" && (
+        <CrafterSetup
+          onStart={session.startCrafter}
+          onBack={session.goHome}
+          isLoading={state.isLoading}
+        />
+      )}
+
+      {state.screen === "crafter-active" && state.crafterContext && (
+        <CrafterActive
+          crafterContext={state.crafterContext}
+          onBack={session.goHome}
+        />
+      )}
     </div>
+    </GatedPage>
   );
 }

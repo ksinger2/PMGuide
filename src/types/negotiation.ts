@@ -39,14 +39,17 @@ export type NegotiationScreen =
   | "expert-viewing"
   | "coach"
   | "tips"
-  | "calculator";
+  | "calculator"
+  | "crafter-setup"
+  | "crafter-active";
 
 export type NegotiationMode =
   | "simulator"
   | "expert"
   | "coach"
   | "tips"
-  | "calculator";
+  | "calculator"
+  | "crafter";
 
 // ---------------------------------------------------------------------------
 // Simulator config & data
@@ -187,6 +190,36 @@ export interface NegotiationHistoryEntry {
 }
 
 // ---------------------------------------------------------------------------
+// Response Crafter
+// ---------------------------------------------------------------------------
+
+export interface CrafterContext {
+  targetCompany: string;
+  targetRole: string;
+  communicationChannel: "email" | "phone" | "text" | "video";
+  tonePreference: "professional" | "warm" | "direct" | "casual";
+  currentlyEmployed: boolean;
+  currentCompany: string;
+  currentTotalComp: string;
+  hasOffer: boolean;
+  offerBase: string;
+  offerEquity: string;
+  offerSignOn: string;
+  offerBonus: string;
+  offerLevel: string;
+  hasCompetingOffers: boolean;
+  competingOfferDetails: string;
+  hasEquityToLeave: boolean;
+  equityAtStake: string;
+  hasTimelinePressure: boolean;
+  deadlineDate: string;
+  hasUniqueSkills: boolean;
+  uniqueSkillsNote: string;
+  hasRelocation: boolean;
+  additionalContext: string;
+}
+
+// ---------------------------------------------------------------------------
 // Session state
 // ---------------------------------------------------------------------------
 
@@ -205,6 +238,8 @@ export interface NegotiationSessionState {
   chatMessages: Array<{ role: "user" | "assistant"; content: string }>;
   calculatorOffers: CalculatorOffer[];
   activeTipCategory: string | null;
+  crafterContext: CrafterContext | null;
+  crafterMessages: Array<{ role: "user" | "assistant"; content: string }>;
   history: NegotiationHistoryEntry[];
   isLoading: boolean;
   error: string | null;

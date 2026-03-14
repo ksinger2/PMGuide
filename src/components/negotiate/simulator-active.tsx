@@ -44,10 +44,20 @@ export function SimulatorActive({
 }: SimulatorActiveProps) {
   const [streamingText, setStreamingText] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isNearBottomRef = useRef(true);
+
+  const handleScroll = useCallback(() => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  }, []);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isNearBottomRef.current) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [turns, streamingText]);
 
   const handleSend = useCallback(async () => {
@@ -61,6 +71,7 @@ export function SimulatorActive({
       timestamp: new Date().toISOString(),
     };
     onAddTurn(userTurn);
+    isNearBottomRef.current = true;
     setLoading(true);
     setStreamingText("");
 
@@ -191,7 +202,7 @@ export function SimulatorActive({
         </div>
 
         {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto space-y-3 mb-4 max-h-[50vh] rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto space-y-3 mb-4 max-h-[50vh] rounded-lg border border-slate-200 bg-slate-50 p-4">
           {turns.map((turn, i) => (
             <NegotiationTurnBubble key={i} turn={turn} />
           ))}

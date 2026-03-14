@@ -8,7 +8,9 @@ import { PracticeModeSetup } from "@/components/interview/practice-mode-setup";
 import { ExpertModeSetup } from "@/components/interview/expert-mode-setup";
 import { ActiveQuestion } from "@/components/interview/active-question";
 import { ExpertViewing } from "@/components/interview/expert-viewing";
+import { AskExpertChat } from "@/components/interview/ask-expert-chat";
 import { ResultsScreen } from "@/components/interview/results-screen";
+import { GatedPage } from "@/components/layout/gated-page";
 import { useInterviewSession } from "@/hooks/use-interview-session";
 import type { SessionConfig, Question, Feedback, ModelAnswer } from "@/types/interview";
 import type { InterviewQuestionType } from "@/lib/prompts/interview";
@@ -213,6 +215,7 @@ export default function InterviewPage() {
   // ---------------------------------------------------------------------------
 
   return (
+    <GatedPage>
     <div data-testid="interview-page">
       <SectionHeader
         title="Interview Lab"
@@ -231,6 +234,10 @@ export default function InterviewPage() {
             Dismiss
           </button>
         </div>
+      )}
+
+      {state.screen === "ask-expert-chat" && (
+        <AskExpertChat onBack={goHome} />
       )}
 
       {state.screen === "home" && (
@@ -304,5 +311,6 @@ export default function InterviewPage() {
           />
         )}
     </div>
+    </GatedPage>
   );
 }

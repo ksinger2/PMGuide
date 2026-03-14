@@ -16,6 +16,7 @@ import type {
   DifficultyLevel,
   CalculatorOffer,
   NegotiationHistoryEntry,
+  CrafterContext,
 } from "@/types/negotiation";
 import {
   NEGOTIATE_HISTORY_KEY,
@@ -39,6 +40,8 @@ type SessionAction =
   | { type: "ADD_CHAT_MESSAGE"; payload: { role: "user" | "assistant"; content: string } }
   | { type: "SET_CALCULATOR_OFFERS"; payload: CalculatorOffer[] }
   | { type: "SET_TIP_CATEGORY"; payload: string | null }
+  | { type: "START_CRAFTER"; payload: CrafterContext }
+  | { type: "SET_CRAFTER_MESSAGES"; payload: Array<{ role: "user" | "assistant"; content: string }> }
   | { type: "GO_HOME" }
   | { type: "HYDRATE"; payload: NegotiationHistoryEntry[] }
   | { type: "SET_LOADING"; payload: boolean }
@@ -64,6 +67,8 @@ const initialState: NegotiationSessionState = {
   chatMessages: [],
   calculatorOffers: [],
   activeTipCategory: null,
+  crafterContext: null,
+  crafterMessages: [],
   history: [],
   isLoading: false,
   error: null,
@@ -85,6 +90,7 @@ function sessionReducer(
         coach: "coach",
         tips: "tips",
         calculator: "calculator",
+        crafter: "crafter-setup",
       };
       return {
         ...state,
@@ -190,6 +196,19 @@ function sessionReducer(
 
     case "SET_TIP_CATEGORY":
       return { ...state, activeTipCategory: action.payload };
+
+    case "START_CRAFTER":
+      return {
+        ...state,
+        screen: "crafter-active",
+        crafterContext: action.payload,
+        crafterMessages: [],
+        isLoading: false,
+        error: null,
+      };
+
+    case "SET_CRAFTER_MESSAGES":
+      return { ...state, crafterMessages: action.payload };
 
     case "GO_HOME":
       return {
@@ -319,6 +338,17 @@ export function useNegotiationSession() {
     []
   );
 
+  const startCrafter = useCallback(
+    (context: CrafterContext) => dispatch({ type: "START_CRAFTER", payload: context }),
+    []
+  );
+
+  const setCrafterMessages = useCallback(
+    (msgs: Array<{ role: "user" | "assistant"; content: string }>) =>
+      dispatch({ type: "SET_CRAFTER_MESSAGES", payload: msgs }),
+    []
+  );
+
   const goHome = useCallback(
     () => dispatch({ type: "GO_HOME" }),
     []
@@ -353,6 +383,8 @@ export function useNegotiationSession() {
     addChatMessage,
     setCalculatorOffers,
     setTipCategory,
+    startCrafter,
+    setCrafterMessages,
     goHome,
     setLoading,
     setError,

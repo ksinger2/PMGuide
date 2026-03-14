@@ -17,7 +17,7 @@ const navItems = [
   { href: "/about-me", label: "About Me", icon: User, gated: false },
   { href: "/resume", label: "Resume", icon: FileText, gated: true },
   { href: "/outreach", label: "Outreach", icon: Mail, locked: true },
-  { href: "/interview", label: "Interview", icon: MessageSquare, locked: true },
+  { href: "/interview", label: "Interview", icon: MessageSquare, gated: true },
   { href: "/negotiate", label: "Negotiate", icon: DollarSign, gated: true },
 ];
 

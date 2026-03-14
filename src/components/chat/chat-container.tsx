@@ -41,6 +41,8 @@ export function ChatContainer({
   const [streamingContent, setStreamingContent] = useState("");
   const [isHydrated, setIsHydrated] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
   const { state: profileState, dispatch: profileDispatch } = useProfile();
 
   // Hydrate messages from localStorage on mount
@@ -71,9 +73,20 @@ export function ChatContainer({
     }
   }, [messages, isHydrated, storageKey]);
 
-  // Auto-scroll to bottom on new messages or streaming content
+  // Track whether user is near the bottom of the chat
+  const handleScroll = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const threshold = 100; // px from bottom
+    isNearBottomRef.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  }, []);
+
+  // Only auto-scroll if user is already near the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isNearBottomRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, streamingContent]);
 
   const handleSend = useCallback(
@@ -85,6 +98,7 @@ export function ChatContainer({
       };
 
       setMessages((prev) => [...prev, userMessage]);
+      isNearBottomRef.current = true; // User just sent a message — follow the response
       setIsLoading(true);
       setStreamingContent("");
 
@@ -190,6 +204,8 @@ export function ChatContainer({
     >
       {/* Messages area */}
       <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
         data-testid="chat-messages"
         className="flex-1 space-y-4 overflow-y-auto p-4"
       >

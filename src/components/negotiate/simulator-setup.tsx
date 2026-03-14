@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type {
   SimulatorConfig,
   NegotiationCompany,
@@ -35,8 +35,11 @@ export function SimulatorSetup({
   const [difficulty, setDifficulty] = useState<DifficultyLevel>("realistic");
   const [targetRole, setTargetRole] = useState(TARGET_ROLES[0]);
   const [currentComp, setCurrentComp] = useState("");
+  const startingRef = useRef(false);
 
   const handleStart = async () => {
+    if (startingRef.current) return;
+    startingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -70,6 +73,9 @@ export function SimulatorSetup({
       onStart(config, fullContext, data.budgetCeiling);
     } catch {
       setError("Network error — could not generate scenario");
+    } finally {
+      startingRef.current = false;
+      setLoading(false);
     }
   };
 

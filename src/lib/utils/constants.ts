@@ -20,3 +20,5 @@ export const NEGOTIATE_RATE_LIMIT = 10;
 export const MAX_NEGOTIATE_HISTORY = 20;
 export const NEGOTIATE_COACH_STORAGE_KEY = "pmguide-negotiate-coach";
 export const MAX_SIMULATOR_TURNS = 20;
+export const NEGOTIATE_CRAFTER_STORAGE_KEY = "pmguide-negotiate-crafter";
+export const INTERVIEW_ASK_EXPERT_STORAGE_KEY = "pmguide-interview-ask-expert";

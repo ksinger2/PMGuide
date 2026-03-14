@@ -5,54 +5,94 @@
 ---
 
 ## Last Updated
-2026-03-12 — Session 9
+2026-03-14 — Session 11
 
 ## Session Summary
-Session 9: Three major improvements — resume scoring consistency overhaul, critique navigation persistence, and real-time voice transcription.
+Session 11: Three targeted fixes — Crafter candidate context, URL bypass protection, interview nav verification.
 
 What was done this session:
 
-### Resume Scoring Consistency (AI Engineering)
-- **Temperature 0.0**: Changed critique temperature from 0.2 to 0.0 in `TASK_OVERRIDES` (`models.ts`)
-- **Structured output via tool_use**: Critique route (`api/resume/critique/route.ts`) now uses `callChatWithTool()` — forces AI into a strict JSON schema via `tool_choice`. New `callChatWithTool()` function added to `client.ts`. Critique is now non-streaming JSON (was SSE).
-- **Decision-tree severity definitions**: Replaced vague severity labels with a 2-step yes/no decision tree in the prompt (`resume-critique.ts`)
-- **Anchor calibration examples**: Added 12 few-shot examples (2 per category × 6 categories) showing exactly what high vs medium severity looks like for PM resumes
-- **CritiquePanel updated**: Now reads structured JSON response directly instead of parsing SSE stream chunks
+### Fix 1: Crafter Candidate Context
+- Added collapsible "Your context" textarea to Response Crafter active chat (`crafter-active.tsx`)
+- "Add context ▼" / "Hide context ▲" toggle below the recruiter message input
+- When provided, formats API message with `[RECRUITER MESSAGE]` and `[CANDIDATE CONTEXT]` blocks
+- Updated `negotiate-crafter.ts` system prompt to explain and prioritize candidate context
+- Context clears after send
 
-### Critique Navigation Persistence (Bug Fix)
-- **Problem**: Starting a critique then navigating to Interview lost the in-progress API call — component unmount killed the fetch response
-- **Fix**: Module-level promise cache in `critique-panel.tsx`. The fetch promise and resolved result live outside React in module-scoped variables. On remount, a `useEffect` checks for pending/resolved results and restores UI state. Also writes to localStorage from within the promise closure (independent of React lifecycle).
+### Fix 2: URL Bypass Protection
+- Created `src/components/layout/gated-page.tsx` — reusable wrapper component
+- Checks `state.completeness >= PROFILE_GATE_THRESHOLD` (70%)
+- Shows lock screen with progress bar and link to About Me when gate not met
+- Wrapped `/interview`, `/negotiate`, and `/outreach` pages
+- Outreach uses `locked` prop for permanent "Coming Soon" lock
+- Previously, users could bypass nav gating by typing URLs directly
 
-### Real-Time Voice Transcription (Bug Fix)
-- **Problem**: Voice input text only appeared after user stopped speaking — no real-time feedback
-- **Fix**: Enabled `interimResults = true` in `voice-input.tsx`. Added `onInterim` callback prop. `onresult` handler now emits interim text for live preview and final text when segment confirms. Chat input and interview answer textareas show interim text in real-time.
-- **Files changed**: `voice-input.tsx`, `chat-input.tsx`, `active-question.tsx`
+### Fix 3: Interview Nav Verified
+- Interview tab lock was already fixed in Session 10 (mobile-nav line 20: `gated: true`)
+- No additional code change needed — unlocks correctly when profile gate is met
+
+### Files Added (1)
+- `src/components/layout/gated-page.tsx`
+
+### Files Modified (5)
+- `src/components/negotiate/crafter-active.tsx` — candidate context UI + message formatting
+- `src/lib/prompts/negotiate-crafter.ts` — candidate context instruction in system prompt
+- `src/app/interview/page.tsx` — wrapped in `<GatedPage>`
+- `src/app/negotiate/page.tsx` — wrapped in `<GatedPage>`
+- `src/app/outreach/page.tsx` — wrapped in `<GatedPage locked>`
 
 ### Previous Sessions
+- **Session 10**: Negotiation Lab (full feature — 5 modes, 37 files, ~4800 lines)
+- **Session 9**: Scoring consistency (tool_use, temp=0.0, calibration examples), critique navigation persistence, real-time voice transcription
 - **Session 8**: Expert mode, voice input on interview, resume branching system
 - **Session 7**: Interview Lab (full feature — 4 API routes, 10 components, 3 modes)
 - **Session 6 and earlier**: Core app (chat, resume upload/critique/generate, profile system)
 
+### Negotiation Lab (Full Feature — Session 10)
+- **Simulator Mode**: Multi-turn salary negotiation roleplay against an AI recruiter. Hidden budget ceiling mechanic — recruiter has a secret max they'll go to. Real-time evaluation of each turn with coaching feedback. Final grading with detailed scorecard.
+- **Expert Demo Mode**: Watch an AI expert negotiate on your behalf. Setup screen collects scenario details, then streams a full negotiation with expert commentary on strategy.
+- **Coach Mode**: Parallel coaching during simulation. Split-panel UI with coach notes appearing alongside the negotiation. Coach analyzes recruiter responses and suggests tactics.
+- **Tips Browser**: Searchable library of negotiation frameworks and tactics. Client-side only, no API needed. Categories: anchoring, BATNA, framing, timing, etc.
+- **Offer Calculator**: Side-by-side total compensation comparison. Equity modeling (RSU vesting schedules, refresh grants), signing bonus amortization, benefits valuation. Pure client-side computation.
+
+### Files Added (30 new)
+- **6 API routes**: `negotiate/scenario`, `negotiate/chat`, `negotiate/evaluate-turn`, `negotiate/grade`, `negotiate/expert-demo`, `negotiate/analyze-offers`
+- **20 components**: `negotiate-home`, `simulator-setup`, `simulator-active`, `simulator-results`, `expert-setup`, `expert-viewing`, `coach-chat`, `coach-notes-panel`, `negotiation-turn`, `tip-card`, `tips-browser`, `offer-calculator`, `offer-column`, `comparison-chart` + more
+- **4 prompts**: `negotiate-recruiter.ts`, `negotiate-expert.ts`, `negotiate-coach.ts`, `negotiate-grade.ts`
+- **Session hook**: `use-negotiation-session.ts` (useReducer + localStorage)
+- **Utilities**: `calc-utils.ts`, `comp-data.ts`, `frameworks.ts`, `scenarios.ts`
+- **Types**: `negotiation.ts`
+- **Tests**: `calc-utils.test.ts`
+
+### Files Modified (6)
+- `chat/route.ts` — negotiate section routing
+- `negotiate/page.tsx` — full page implementation (was Coming Soon stub)
+- `mobile-nav.tsx`, `sidebar.tsx` — negotiate nav with profile gate
+- `models.ts` — negotiate task temperature overrides
+- `constants.ts` — negotiate-related constants
+
 ### Architecture Decisions
-- **Non-streaming critique**: Switched from SSE to non-streaming JSON with forced tool_use. This enforces schema (severity enums, category enums) at the API level. CritiquePanel reads `json.data` directly.
-- **Module-level promise cache**: Chosen over Context/Zustand/service worker. Zero dependencies, 1 file change, survives mount/unmount naturally.
-- **Two-callback voice pattern**: `onTranscript` for final text (appended), `onInterim` for live preview (replaced). Parents track interim state separately.
+- **Hidden budget ceiling**: Recruiter AI has a secret maximum it will accept, calculated from scenario parameters. Player doesn't know the ceiling — creates realistic negotiation tension. Evaluated per-turn so player gets feedback on whether they're pushing too hard or leaving money on the table.
+- **Parallel coach notes**: Coach runs as a separate API call alongside the recruiter response. Split-panel UI shows both simultaneously. Coach analyzes the recruiter's latest response and suggests next moves.
+- **Component separation**: 20 components instead of a monolithic page. Each mode has its own setup → active → results flow. Shared `negotiation-turn` component for message display across modes.
+- **Client-side calculator**: Offer Calculator and Tips Browser require no API key — pure client-side computation. Useful even without Anthropic access.
+- **Session state hook**: `useNegotiationSession` follows the same pattern as interview — useReducer + localStorage, typed actions, serializable state.
 
 ## Current Status
 
 ### What's Done
 - [x] Next.js app scaffolded and building
 - [x] Responsive layout shell (sidebar + mobile nav)
-- [x] All routes created (7 pages + 12 API routes)
-- [x] AI client wrapper + model routing (Haiku for chat, Sonnet 4 for resume/interview)
-- [x] Per-task temperature overrides (critique=0.0, generate/fork=0.7, interview-generate=0.8, interview-grade=0.3, interview-model=0.5)
+- [x] All routes created (7 pages + 18 API routes)
+- [x] AI client wrapper + model routing (Haiku for chat, Sonnet 4 for resume/interview/negotiate)
+- [x] Per-task temperature overrides (critique=0.0, generate/fork=0.7, interview-generate=0.8, interview-grade=0.3, interview-model=0.5, negotiate=0.7, negotiate-grade=0.3)
 - [x] SSE streaming helpers + non-streaming `callChat()` + `callChatWithTool()` (forced tool_use)
-- [x] POST /api/chat — about-me + interview sections working
+- [x] POST /api/chat — about-me + interview + negotiate sections working
 - [x] About Me system prompt with progress tracking + extraction
 - [x] Chat UI components — all bugs fixed, profile updates flowing
 - [x] Voice input with real-time interim transcription (Web Speech API)
 - [x] ProfileProvider with localStorage persistence
-- [x] Profile gate enforcement (sidebar, mobile nav, resume page, interview page)
+- [x] Profile gate enforcement (sidebar, mobile nav, resume page, interview page, negotiate page, URL bypass protection)
 - [x] Sidebar profile card with live completeness
 - [x] Chat history persistence (localStorage)
 - [x] Profile editor form (8 core fields, Chat|Profile tabs)
@@ -86,18 +126,31 @@ What was done this session:
   - Real-time voice input on answer textarea
 - [x] Resume scoring consistency: tool_use schema enforcement, temp=0.0, decision-tree severities, calibration examples
 - [x] Resume flow state persists to localStorage
-- [x] Vitest unit tests — 61/61 passing
+- [x] **Negotiation Lab** — Full negotiation practice and analysis
+  - Five modes: Simulator + Expert Demo + Coach + Tips Browser + Offer Calculator
+  - Simulator: multi-turn roleplay with hidden budget ceiling, per-turn evaluation, final grading
+  - Expert Demo: watch AI negotiate with strategic commentary
+  - Coach: parallel advice panel during simulation
+  - Tips Browser: searchable frameworks library (client-side)
+  - Offer Calculator: TC comparison with equity modeling (client-side)
+  - Response Crafter with candidate context input for mid-conversation refinement
+  - 6 API routes, 20 components, 4 prompts
+  - Session state hook (useReducer + localStorage)
+- [x] Vitest unit tests — 76/76 passing (6 test files)
 - [x] Production build succeeds with all routes
 - [x] `/reinit` command exists with full agent team (8 agents)
 
 ### What's NOT Done
-- [ ] **Live manual testing** — Both bugs need manual verification:
-  1. Critique persistence: start critique → navigate to interview → come back → results should be there
-  2. Voice real-time: speak into mic → text should stream into textarea as you talk
+- [ ] **Live manual testing** — Negotiate feature needs manual verification:
+  1. Simulator: run a full multi-turn negotiation, check grading
+  2. Expert Demo: watch a full AI negotiation
+  3. Coach: verify parallel notes appear alongside simulator
+  4. Calculator: compare two offers, check math
+  5. Tips: browse and search frameworks
+- [ ] **E2E tests for Negotiation Lab** — No Playwright tests yet for negotiate flows
 - [ ] **E2E tests for scoring consistency** — Verify critique scores are more stable across runs
 - [ ] **Multi-sample consensus** (Phase 3 scoring) — Run critique 2-3x and majority-vote findings. Only needed if current fixes don't sufficiently reduce variance.
 - [ ] Outreach section (Coming Soon stub exists)
-- [ ] Negotiate section (Coming Soon stub exists)
 - [ ] Toast notifications
 - [ ] Skeleton loaders
 - [ ] CI/CD pipeline (GitHub Actions)
@@ -106,27 +159,24 @@ What was done this session:
 - [ ] Token budget management for long conversations
 - [ ] ForkPanel cleanup — still in codebase but not imported anywhere
 - [ ] 2 pre-existing mobile E2E failures (branch tab close button blocked by mobile-nav overlay)
-- [ ] E2E tests need re-run after Session 9 changes
+- [ ] E2E tests need re-run after Session 9/10 changes
 
 ## Priority Next Steps
 
-### 1. Live Manual Testing (Both Session 9 Fixes)
-Test the critique persistence fix: upload resume → start critique → navigate to interview → wait → come back. Test voice real-time: record speech in chat and interview, verify text streams live.
+### 1. Live Manual Testing (Negotiation Lab)
+Test all 5 modes. Tips & Calculator work without API key. Simulator, Expert, and Coach need ANTHROPIC_API_KEY. Profile gate must be passed first (70%+ completeness).
 
-### 2. Run Full Test Suite
-Re-run all unit and E2E tests after Session 9 changes. The critique panel tests may need updates since the API response format changed (SSE → JSON).
+### 2. Outreach Section
+Last remaining Coming Soon stub. Build out networking/outreach features.
 
-### 3. Scoring Consistency Evaluation
-Run the same resume through critique 3-5 times and compare scores. If variance is still too high, implement multi-sample consensus (Phase 3).
+### 3. E2E Tests for Negotiate
+Add Playwright tests for negotiate flows — at minimum: mode selection, calculator math, tips browsing.
 
 ### 4. Polish UI/UX
 Toast notifications, skeleton loaders, responsive edge cases. Fix 2 pre-existing mobile E2E failures.
 
 ### 5. CI/CD + Vercel Deployment
 GitHub Actions workflow, Vercel project setup.
-
-### 6. Outreach/Negotiate Sections
-Build out remaining Coming Soon stubs.
 
 ## Blockers
 - Vitest worker times out in WSL2 (infra issue, not code — tests still pass)
@@ -140,26 +190,27 @@ Build out remaining Coming Soon stubs.
 - Should branch chat history have a max length? (currently capped at 20 messages)
 - Interview Lab: should infinite mode have a session summary at the end?
 - Is multi-sample consensus needed or did the prompt/tool_use fixes sufficiently stabilize scores?
+- Negotiate: should simulator have difficulty levels (easy/medium/hard budget ceilings)?
 
 ## Notes for Specific Agents
 
 ### Product Manager
-Scoring consistency addressed with 4 techniques (tool_use, temp=0.0, decision-tree severity, calibration examples). Needs live testing to evaluate. Critique now survives navigation. Voice input is real-time. Next priority: manual testing, then polish.
+4 of 5 major sections complete (About Me, Resume, Interview, Negotiate). Only Outreach remains as Coming Soon. 76 tests passing, 18 API routes, production build clean. Negotiate adds significant depth — 5 distinct modes covering practice, analysis, and education.
 
 ### UX Designer
-Voice input now shows text streaming in real-time as user speaks (interim results). Critique loading state persists across navigation — user can start critique, do interview practice, and come back to see results.
+Negotiate uses a mode-selection home screen (same pattern as Interview). Each mode has setup → active → results flow. Split-panel layout for Coach mode. Calculator has side-by-side offer columns with comparison chart. Tips browser has category filtering and search.
 
 ### Frontend Engineer
-Key Session 9 patterns: Module-level promise cache in `critique-panel.tsx` — `pendingCritique` and `resolvedCritique` live outside React, recovery `useEffect` on mount checks both. Voice uses two-callback pattern: `onTranscript` (final, appended) + `onInterim` (live preview, replaced). `callChatWithTool()` in `client.ts` forces structured JSON output via tool_use + tool_choice.
+Key Session 10 patterns: `useNegotiationSession` hook follows interview pattern (useReducer + localStorage). 20 components in `src/components/negotiate/`. Coach notes use parallel API calls — recruiter response and coach analysis fire simultaneously. Calculator is pure client-side (no API). `negotiation-turn.tsx` is shared across Simulator, Expert, and Coach modes.
 
 ### Backend Engineer
-Critique route is now non-streaming. Uses `callChatWithTool()` with forced `tool_choice: {type: "tool", name: "resume_critique"}`. Returns `NextResponse.json({data, error, meta})`. Tool schema enforces severity enum and category enum at API level. `ToolDefinition` interface exported from `client.ts`.
+6 new API routes under `/api/negotiate/`. `scenario` generates negotiation scenarios, `chat` handles recruiter turns (SSE), `evaluate-turn` scores individual moves, `grade` produces final scorecard, `expert-demo` streams expert negotiation, `analyze-offers` processes calculator data. Temperature: 0.7 for creative (chat, expert), 0.3 for evaluation (grade, evaluate-turn).
 
 ### AI Engineer
-Scoring consistency fixes implemented: temp=0.0, tool_use schema enforcement (severity/category enums), decision-tree severity flow, 12 calibration examples. Needs evaluation — run same resume 3-5x and compare variance. If still too high, Phase 3 is multi-sample consensus with majority-vote on findings.
+4 new prompt files: recruiter (adversarial with hidden ceiling), expert (strategic demonstration), coach (parallel tactical advice), grade (structured scoring). Recruiter prompt includes budget ceiling mechanics — AI must negotiate realistically without revealing the max. Coach prompt analyzes conversation history and suggests specific tactics.
 
 ### DevOps Engineer
-No infra changes this session. CI/CD still needed. E2E tests need re-run — critique panel tests may need updates for new JSON response format (was SSE).
+No infra changes. 18 total API routes now. CI/CD still needed. Build passes clean.
 
 ### QA Engineer
-Session 9 changed critique from SSE to JSON response — E2E tests that mock/check critique flow need updating. New behaviors to test: critique persistence across navigation, voice interim text in textarea, structured tool_use response format. Run full suite before next feature work.
+76 tests passing (was 61). New: `calc-utils.test.ts` covers TC calculation, equity vesting, comparison logic. E2E tests needed for negotiate flows. Manual testing checklist: all 5 modes, profile gate enforcement, calculator math accuracy.

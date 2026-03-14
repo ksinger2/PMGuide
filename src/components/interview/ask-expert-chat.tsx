@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useProfile } from "@/stores/profile-context";
-import { buildNegotiateCoachPrompt } from "@/lib/prompts/negotiate-coach";
-import type { UserProfile } from "@/lib/utils/profile";
-import { NEGOTIATE_COACH_STORAGE_KEY } from "@/lib/utils/constants";
+import { INTERVIEW_ASK_EXPERT_STORAGE_KEY } from "@/lib/utils/constants";
 
-interface CoachChatProps {
+interface AskExpertChatProps {
   onBack: () => void;
 }
 
@@ -15,18 +13,24 @@ interface Message {
   content: string;
 }
 
-const WELCOME_MESSAGE = `I'm The Negotiator — your compensation coaching expert. I help Senior/Staff PMs maximize total comp at top tech companies.
+const WELCOME_MESSAGE = `I'm your Interview Expert — paste any PM interview question and I'll walk you through a structured answer using the right framework.
 
-I can help you with:
-- **Counter-offer strategy** — tell me your offer and I'll build your counter
-- **Email templates** — I'll draft the exact words to send
-- **Offer comparison** — bring me multiple offers and I'll break them down
-- **No-leverage negotiation** — I'll show you how to create BATNA even without competing offers
-- **Equity analysis** — RSUs vs options vs profit interest, vesting schedules, refreshers
+I auto-detect the question type and use the matching approach:
+- **Product Design** — user-centered framework (users, pain points, solutions, prioritize, metrics)
+- **Strategy** — market analysis, competitive positioning, growth levers
+- **Execution** — prioritization frameworks, roadmapping, trade-offs
+- **Analytical** — metric decomposition, root cause analysis, data-driven decisions
+- **Estimation** — top-down/bottom-up sizing, assumptions, sanity checks
+- **Technical** — system design, API decisions, technical trade-offs
+- **Behavioral** — STAR format, leadership principles, growth stories
 
-What are you working with?`;
+**Try pasting one of these:**
+- "Design a product for elderly people to stay connected with family"
+- "How would you prioritize features for Instagram Reels?"
+- "Estimate the number of piano tuners in Chicago"
+- "Tell me about a time you had to make a decision with incomplete data"`;
 
-export function CoachChat({ onBack }: CoachChatProps) {
+export function AskExpertChat({ onBack }: AskExpertChatProps) {
   const { state: profileState } = useProfile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -46,7 +50,7 @@ export function CoachChat({ onBack }: CoachChatProps) {
   // Hydrate from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(NEGOTIATE_COACH_STORAGE_KEY);
+      const saved = localStorage.getItem(INTERVIEW_ASK_EXPERT_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
@@ -63,7 +67,7 @@ export function CoachChat({ onBack }: CoachChatProps) {
   useEffect(() => {
     if (!isHydrated) return;
     try {
-      localStorage.setItem(NEGOTIATE_COACH_STORAGE_KEY, JSON.stringify(messages));
+      localStorage.setItem(INTERVIEW_ASK_EXPERT_STORAGE_KEY, JSON.stringify(messages));
     } catch {
       // localStorage full
     }
@@ -92,7 +96,7 @@ export function CoachChat({ onBack }: CoachChatProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
-          section: "negotiate-coach",
+          section: "interview-ask-expert",
           conversationHistory: messages,
           profileSnapshot: profileState.profile,
         }),
@@ -156,14 +160,14 @@ export function CoachChat({ onBack }: CoachChatProps) {
   const clearChat = () => {
     setMessages([]);
     try {
-      localStorage.removeItem(NEGOTIATE_COACH_STORAGE_KEY);
+      localStorage.removeItem(INTERVIEW_ASK_EXPERT_STORAGE_KEY);
     } catch {
       // ignore
     }
   };
 
   return (
-    <div className="space-y-4" data-testid="coach-chat">
+    <div className="space-y-4" data-testid="ask-expert-chat">
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -184,9 +188,9 @@ export function CoachChat({ onBack }: CoachChatProps) {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold text-slate-800">Chat with Coach</h2>
+        <h2 className="text-xl font-semibold text-slate-800">Ask the Expert</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Get personalized negotiation advice, email templates, and counter-offer strategy.
+          Paste any PM interview question — get a structured expert answer with the right framework.
         </p>
       </div>
 
@@ -195,7 +199,7 @@ export function CoachChat({ onBack }: CoachChatProps) {
         {/* Welcome message */}
         <div className="flex justify-start">
           <div className="max-w-[85%] rounded-lg bg-white border border-slate-200 px-4 py-3 text-sm text-slate-800">
-            <div className="text-xs font-medium text-emerald-600 mb-1">The Negotiator</div>
+            <div className="text-xs font-medium text-indigo-600 mb-1">Interview Expert</div>
             <div className="whitespace-pre-wrap prose prose-sm max-w-none" dangerouslySetInnerHTML={{
               __html: WELCOME_MESSAGE.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             }} />
@@ -206,11 +210,11 @@ export function CoachChat({ onBack }: CoachChatProps) {
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] rounded-lg px-4 py-3 text-sm ${
               msg.role === "user"
-                ? "bg-emerald-600 text-white"
+                ? "bg-indigo-600 text-white"
                 : "bg-white border border-slate-200 text-slate-800"
             }`}>
               {msg.role === "assistant" && (
-                <div className="text-xs font-medium text-emerald-600 mb-1">The Negotiator</div>
+                <div className="text-xs font-medium text-indigo-600 mb-1">Interview Expert</div>
               )}
               <p className="whitespace-pre-wrap">{msg.content}</p>
             </div>
@@ -237,16 +241,16 @@ export function CoachChat({ onBack }: CoachChatProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about your offer, counter strategy, email templates..."
+          placeholder="Paste any PM interview question..."
           disabled={isLoading}
           rows={2}
-          className="flex-1 resize-none rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+          className="flex-1 resize-none rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
         />
         <button
           type="button"
           onClick={handleSend}
           disabled={isLoading || !input.trim()}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors self-end"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors self-end"
         >
           Send
         </button>

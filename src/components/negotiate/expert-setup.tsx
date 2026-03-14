@@ -17,6 +17,7 @@ export function ExpertSetup({ onStart, onBack }: ExpertSetupProps) {
   const [company, setCompany] = useState<NegotiationCompany>("google");
   const [scenario, setScenario] = useState<ScenarioType>("initial-offer");
   const [difficulty, setDifficulty] = useState<DifficultyLevel>("realistic");
+  const [isStarting, setIsStarting] = useState(false);
 
   return (
     <div className="space-y-6" data-testid="expert-setup">
@@ -90,10 +91,18 @@ export function ExpertSetup({ onStart, onBack }: ExpertSetupProps) {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => onStart(company, scenario, difficulty)}
-          className="rounded-lg bg-amber-600 px-6 py-3 text-sm font-medium text-white hover:bg-amber-700 transition-colors"
+          onClick={() => { setIsStarting(true); onStart(company, scenario, difficulty); }}
+          disabled={isStarting}
+          className="rounded-lg bg-amber-600 px-6 py-3 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          Generate Expert Demo
+          {isStarting ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Generating...
+            </span>
+          ) : (
+            "Generate Expert Demo"
+          )}
         </button>
       </div>
     </div>

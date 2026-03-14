@@ -67,7 +67,12 @@ function sessionReducer(
 ): InterviewSessionState {
   switch (action.type) {
     case "SELECT_MODE":
-      return { ...state, screen: "setup", mode: action.payload, error: null };
+      return {
+        ...state,
+        screen: action.payload === "ask-expert" ? "ask-expert-chat" : "setup",
+        mode: action.payload,
+        error: null,
+      };
 
     case "START_SESSION":
       return {

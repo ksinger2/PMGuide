@@ -49,6 +49,13 @@ const MODE_CARDS: Array<{
     description: "Side-by-side offer comparison with 4-year projections and location adjustment.",
     color: "hover:border-rose-300 hover:shadow-md",
   },
+  {
+    mode: "crafter",
+    icon: "✍️",
+    title: "Response Crafter",
+    description: "Paste what the recruiter said — get the exact reply to send back, written as you.",
+    color: "hover:border-cyan-300 hover:shadow-md",
+  },
 ];
 
 function getScoreColor(score: number): string {
@@ -63,6 +70,7 @@ const MODE_LABELS: Record<string, string> = {
   coach: "Coach",
   tips: "Tips",
   calculator: "Calculator",
+  crafter: "Crafter",
 };
 
 export function NegotiateHome({ history, onSelectMode }: NegotiateHomeProps) {

@@ -15,6 +15,9 @@ import {
   type FeedbackMode,
 } from "@/lib/prompts/interview";
 import { buildNegotiateCoachPrompt } from "@/lib/prompts/negotiate-coach";
+import { buildNegotiateCrafterPrompt } from "@/lib/prompts/negotiate-crafter";
+import { buildAskExpertPrompt } from "@/lib/prompts/interview-ask-expert";
+import type { CrafterContext } from "@/types/negotiation";
 import type { UserProfile } from "@/lib/utils/profile";
 import { MAX_MESSAGE_LENGTH, CHAT_RATE_LIMIT } from "@/lib/utils/constants";
 
@@ -24,7 +27,7 @@ import { MAX_MESSAGE_LENGTH, CHAT_RATE_LIMIT } from "@/lib/utils/constants";
 
 const chatRequestSchema = z.object({
   message: z.string().min(1, "Message is required").max(MAX_MESSAGE_LENGTH),
-  section: z.enum(["about-me", "resume", "interview", "negotiate-coach"]),
+  section: z.enum(["about-me", "resume", "interview", "negotiate-coach", "negotiate-crafter", "interview-ask-expert"]),
   interviewCompany: z.string().optional(),
   interviewQuestionType: z.string().optional(),
   interviewFeedbackMode: z.enum(["after-each", "end-of-session"]).optional(),
@@ -38,6 +41,7 @@ const chatRequestSchema = z.object({
     .optional(),
   profileSnapshot: z.record(z.string(), z.unknown()).nullable().optional(),
   questionsAsked: z.array(z.string()).optional(),
+  crafterContext: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -161,6 +165,7 @@ export async function POST(request: NextRequest) {
       interviewCompany,
       interviewQuestionType,
       interviewFeedbackMode,
+      crafterContext,
     } = parsed.data;
 
     // Build messages array
@@ -188,6 +193,15 @@ export async function POST(request: NextRequest) {
       systemPrompt = buildNegotiateCoachPrompt(
         (profileSnapshot as Partial<UserProfile>) ?? {}
       );
+    } else if (section === "negotiate-crafter") {
+      systemPrompt = buildNegotiateCrafterPrompt(
+        (crafterContext as unknown as CrafterContext) ?? {},
+        (profileSnapshot as Partial<UserProfile>) ?? {}
+      );
+    } else if (section === "interview-ask-expert") {
+      systemPrompt = buildAskExpertPrompt(
+        (profileSnapshot as Partial<UserProfile>) ?? {}
+      );
     } else {
       systemPrompt =
         "You are PMGuide, an AI career coach helping a product manager improve their resume. Be specific, actionable, and encouraging.";
@@ -210,7 +224,11 @@ export async function POST(request: NextRequest) {
           ? "interview"
           : section === "negotiate-coach"
             ? "negotiate-coach"
-            : "about-me"
+            : section === "negotiate-crafter"
+              ? "negotiate-crafter"
+              : section === "interview-ask-expert"
+                ? "interview-ask-expert"
+                : "about-me"
     );
 
     // Stream the response with a rolling buffer to catch <profile_update> tags
