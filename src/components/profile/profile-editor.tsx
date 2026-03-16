@@ -468,13 +468,30 @@ export function ProfileEditor() {
           placeholder="e.g. Senior Product Manager"
           onChange={(v) => update({ currentRole: v || null })}
         />
-        <TextField
-          label="Current Company"
-          value={profile?.currentCompany ?? ""}
-          filled={isFieldFilled(profile, "currentCompany")}
-          placeholder="e.g. Stripe"
-          onChange={(v) => update({ currentCompany: v || null })}
-        />
+        <div className="flex flex-col gap-1.5">
+          <TextField
+            label="Current Company"
+            value={profile?.currentCompany === "Not currently employed" ? "" : (profile?.currentCompany ?? "")}
+            filled={isFieldFilled(profile, "currentCompany")}
+            placeholder="e.g. Stripe"
+            onChange={(v) => update({ currentCompany: v || null })}
+          />
+          <label className="inline-flex items-center gap-2 text-sm text-slate-600 cursor-pointer ml-6">
+            <input
+              type="checkbox"
+              checked={profile?.currentCompany === "Not currently employed"}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  update({ currentCompany: "Not currently employed" });
+                } else {
+                  update({ currentCompany: null });
+                }
+              }}
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            Not currently employed
+          </label>
+        </div>
         <NumberField
           label="Years of Experience"
           value={profile?.yearsExperience ?? null}

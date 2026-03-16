@@ -5,43 +5,38 @@
 ---
 
 ## Last Updated
-2026-03-14 — Session 11
+2026-03-16 — Session 12
 
 ## Session Summary
-Session 11: Three targeted fixes — Crafter candidate context, URL bypass protection, interview nav verification.
+Session 12: Outreach message quality overhaul (research-backed brevity) + profile hydration bug fix.
 
 What was done this session:
 
-### Fix 1: Crafter Candidate Context
-- Added collapsible "Your context" textarea to Response Crafter active chat (`crafter-active.tsx`)
-- "Add context ▼" / "Hide context ▲" toggle below the recruiter message input
-- When provided, formats API message with `[RECRUITER MESSAGE]` and `[CANDIDATE CONTEXT]` blocks
-- Updated `negotiate-crafter.ts` system prompt to explain and prioritize candidate context
-- Context clears after send
+### 1. Outreach Prompt Overhaul (`src/lib/prompts/outreach.ts`)
+Research-backed rewrite of the outreach system prompt for shorter, higher-converting messages:
+- **Word count targets tightened**: Email 125→50-75 words, LinkedIn connection 300→200 chars, LinkedIn InMail 500→400 chars, LinkedIn word target 25-50 words
+- **Email format restructured**: Subject line 2-6 words/60 chars → 1-5 words/under 40 chars/lowercase. Body "3-4 SHORT paragraphs" → 3 sections, 1-2 sentences each (hook about them, bridge to you, one ask + graceful out)
+- **Audience sections trimmed**: Cut verbose PHILOSOPHY preambles from all three audiences. Hiring manager: "state purpose within first 2 sentences." Recruiter: "link to the job posting." Referral: DJ Chung's 1-2 step approach for non-close connections. All three: "ONE ASK only" rule.
+- **Added Brevity Protocol section**: Filler/qualifier removal checklist, you/your > I/my ratio, backed by 34M email data
+- **Rules expanded** (10→13): Hard word limits with "count them", one ask per message, you/your ratio, no markdown formatting in body
+- Data sources: Hunter.io 34M emails, Lavender, Aakash Gupta, CNBC/Meredith Fineman, DJ Chung
 
-### Fix 2: URL Bypass Protection
-- Created `src/components/layout/gated-page.tsx` — reusable wrapper component
-- Checks `state.completeness >= PROFILE_GATE_THRESHOLD` (70%)
-- Shows lock screen with progress bar and link to About Me when gate not met
-- Wrapped `/interview`, `/negotiate`, and `/outreach` pages
-- Outreach uses `locked` prop for permanent "Coming Soon" lock
-- Previously, users could bypass nav gating by typing URLs directly
-
-### Fix 3: Interview Nav Verified
-- Interview tab lock was already fixed in Session 10 (mobile-nav line 20: `gated: true`)
-- No additional code change needed — unlocks correctly when profile gate is met
-
-### Files Added (1)
-- `src/components/layout/gated-page.tsx`
+### 2. Profile Hydration Bug Fix (4 files)
+"Start here" badge and locked sections showed incorrectly after profile was complete (70%+). Root cause: profile loads from localStorage in useEffect, but components rendered with `completeness=0` before hydration.
+- `src/app/page.tsx` — don't show "Start here" or "Requires profile" badges until `state.isLoaded`
+- `src/components/layout/sidebar.tsx` — don't lock nav items until `state.isLoaded`
+- `src/components/layout/mobile-nav.tsx` — don't lock nav items until `state.isLoaded`
+- `src/components/layout/gated-page.tsx` — don't show gate lock screen until `state.isLoaded`
 
 ### Files Modified (5)
-- `src/components/negotiate/crafter-active.tsx` — candidate context UI + message formatting
-- `src/lib/prompts/negotiate-crafter.ts` — candidate context instruction in system prompt
-- `src/app/interview/page.tsx` — wrapped in `<GatedPage>`
-- `src/app/negotiate/page.tsx` — wrapped in `<GatedPage>`
-- `src/app/outreach/page.tsx` — wrapped in `<GatedPage locked>`
+- `src/lib/prompts/outreach.ts` — full prompt rewrite for brevity
+- `src/app/page.tsx` — hydration-aware badge/lock logic
+- `src/components/layout/sidebar.tsx` — hydration-aware lock logic
+- `src/components/layout/mobile-nav.tsx` — hydration-aware lock logic
+- `src/components/layout/gated-page.tsx` — hydration-aware gate logic
 
 ### Previous Sessions
+- **Session 11**: Crafter candidate context, URL bypass protection, interview nav verification
 - **Session 10**: Negotiation Lab (full feature — 5 modes, 37 files, ~4800 lines)
 - **Session 9**: Scoring consistency (tool_use, temp=0.0, calibration examples), critique navigation persistence, real-time voice transcription
 - **Session 8**: Expert mode, voice input on interview, resume branching system
@@ -150,7 +145,8 @@ What was done this session:
 - [ ] **E2E tests for Negotiation Lab** — No Playwright tests yet for negotiate flows
 - [ ] **E2E tests for scoring consistency** — Verify critique scores are more stable across runs
 - [ ] **Multi-sample consensus** (Phase 3 scoring) — Run critique 2-3x and majority-vote findings. Only needed if current fixes don't sufficiently reduce variance.
-- [ ] Outreach section (Coming Soon stub exists)
+- [x] Outreach prompt system (research-backed brevity, 3 audiences × 2 formats)
+- [ ] Outreach manual testing — verify generated messages meet word count targets across all audience/format combos
 - [ ] Toast notifications
 - [ ] Skeleton loaders
 - [ ] CI/CD pipeline (GitHub Actions)
@@ -163,13 +159,13 @@ What was done this session:
 
 ## Priority Next Steps
 
-### 1. Live Manual Testing (Negotiation Lab)
+### 1. Outreach Manual Testing
+Test all 3 audiences (hiring-manager, recruiter, referral) × 2 formats (email, LinkedIn). Verify: messages under 75 words (email) / 50 words (LinkedIn), subject lines under 40 chars lowercase, lead with recipient, one ask, no AI buzzwords, no em dashes. Test refinement ("make it shorter").
+
+### 2. Live Manual Testing (Negotiation Lab)
 Test all 5 modes. Tips & Calculator work without API key. Simulator, Expert, and Coach need ANTHROPIC_API_KEY. Profile gate must be passed first (70%+ completeness).
 
-### 2. Outreach Section
-Last remaining Coming Soon stub. Build out networking/outreach features.
-
-### 3. E2E Tests for Negotiate
+### 3. E2E Tests for Negotiate + Outreach
 Add Playwright tests for negotiate flows — at minimum: mode selection, calculator math, tips browsing.
 
 ### 4. Polish UI/UX

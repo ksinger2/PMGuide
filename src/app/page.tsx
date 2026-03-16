@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { User, FileText, Mail, MessageSquare, DollarSign } from "lucide-react";
+import { useProfile } from "@/stores/profile-context";
+import { PROFILE_GATE_THRESHOLD } from "@/lib/utils/constants";
 
 const sections = [
   {
@@ -7,44 +11,42 @@ const sections = [
     icon: User,
     title: "About Me",
     description: "Build your PM profile through a guided conversation",
-    status: "Start here",
-    available: true,
+    gated: false,
   },
   {
     href: "/resume",
     icon: FileText,
     title: "Resume",
     description: "Get AI-powered critique and tailored resume generation",
-    status: "Requires profile",
-    available: true,
+    gated: true,
   },
   {
     href: "/outreach",
     icon: Mail,
     title: "Outreach",
     description: "Craft compelling cold emails and LinkedIn messages",
-    status: "Coming Soon",
-    available: false,
+    gated: true,
   },
   {
     href: "/interview",
     icon: MessageSquare,
     title: "Interview Prep",
     description: "Practice PM interviews with AI-powered mock sessions",
-    status: "Coming Soon",
-    available: false,
+    gated: true,
   },
   {
     href: "/negotiate",
     icon: DollarSign,
     title: "Negotiate",
     description: "Prepare your compensation negotiation strategy",
-    status: "Coming Soon",
-    available: false,
+    gated: true,
   },
 ];
 
 export default function DashboardPage() {
+  const { state } = useProfile();
+  const isGateOpen = state.completeness >= PROFILE_GATE_THRESHOLD;
+
   return (
     <div data-testid="dashboard-page">
       <div className="mb-8">
@@ -60,21 +62,31 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         {sections.map((section) => {
           const Icon = section.icon;
+          // Don't show locked/badge states until profile has hydrated from localStorage
+          const isLocked = state.isLoaded && section.gated && !isGateOpen;
+          const status = !state.isLoaded
+            ? null
+            : !section.gated
+              ? (isGateOpen ? null : "Start here")
+              : isLocked
+                ? "Requires profile"
+                : null;
+
           const content = (
             <div
               className={`rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 ${
-                section.available
-                  ? "hover:shadow-md cursor-pointer"
-                  : "opacity-60"
+                isLocked
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:shadow-md cursor-pointer"
               }`}
               data-testid={`dashboard-card-${section.title.toLowerCase().replace(/\s+/g, "-")}`}
             >
               <div className="flex items-start gap-4">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                    section.available
-                      ? "bg-primary-50 text-primary-600"
-                      : "bg-slate-100 text-slate-400"
+                    isLocked
+                      ? "bg-slate-100 text-slate-400"
+                      : "bg-primary-50 text-primary-600"
                   }`}
                 >
                   <Icon size={20} />
@@ -84,17 +96,17 @@ export default function DashboardPage() {
                     <h2 className="text-xl font-semibold text-slate-800">
                       {section.title}
                     </h2>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        section.status === "Start here"
-                          ? "bg-primary-50 text-primary-700"
-                          : section.status === "Requires profile"
-                            ? "bg-slate-100 text-slate-600"
-                            : "border border-slate-200 text-slate-500"
-                      }`}
-                    >
-                      {section.status}
-                    </span>
+                    {status && (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          status === "Start here"
+                            ? "bg-primary-50 text-primary-700"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {status}
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 text-sm text-slate-500">
                     {section.description}
@@ -104,15 +116,15 @@ export default function DashboardPage() {
             </div>
           );
 
-          if (section.available) {
-            return (
-              <Link key={section.href} href={section.href}>
-                {content}
-              </Link>
-            );
+          if (isLocked) {
+            return <div key={section.href}>{content}</div>;
           }
 
-          return <div key={section.href}>{content}</div>;
+          return (
+            <Link key={section.href} href={section.href}>
+              {content}
+            </Link>
+          );
         })}
       </div>
     </div>

@@ -16,7 +16,7 @@ import { PROFILE_GATE_THRESHOLD } from "@/lib/utils/constants";
 const navItems = [
   { href: "/about-me", label: "About Me", icon: User, gated: false },
   { href: "/resume", label: "Resume", icon: FileText, gated: true },
-  { href: "/outreach", label: "Outreach", icon: Mail, locked: true },
+  { href: "/outreach", label: "Outreach", icon: Mail, gated: true },
   { href: "/interview", label: "Interview", icon: MessageSquare, gated: true },
   { href: "/negotiate", label: "Negotiate", icon: DollarSign, gated: true },
 ];
@@ -35,13 +35,14 @@ export function MobileNav() {
         const isActive = pathname === item.href;
         const Icon = item.icon;
 
-        const isLocked = item.locked || (item.gated && !isGateOpen);
+        const isLocked = state.isLoaded && item.gated && !isGateOpen;
 
         if (isLocked) {
           return (
             <div
               key={item.href}
               className="relative flex flex-col items-center gap-1 text-xs text-slate-300"
+              title="Profile required"
               data-testid={`mobile-nav-${item.label.toLowerCase()}-locked`}
             >
               <div className="relative">

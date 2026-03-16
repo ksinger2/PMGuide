@@ -34,6 +34,7 @@ export const TASK_OVERRIDES: Partial<
   "negotiate-coach": { temperature: 0.5, maxTokens: 2000 },
   "negotiate-crafter": { temperature: 0.5, maxTokens: 2000 },
   "interview-ask-expert": { temperature: 0.5, maxTokens: 3000 },
+  outreach: { temperature: 0.6, maxTokens: 2000 },
 };
 
 export function getModelForTask(task: string): ModelTier {
@@ -55,6 +56,7 @@ export function getModelForTask(task: string): ModelTier {
     "negotiate-coach",
     "negotiate-crafter",
     "interview-ask-expert",
+    "outreach",
   ];
   return qualityTasks.includes(task) ? "quality" : "utility";
 }

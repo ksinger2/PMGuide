@@ -2,8 +2,8 @@ import type { UserProfile } from "@/lib/utils/profile";
 
 export const karenProfile: UserProfile = {
   name: "Karen Singer",
-  currentRole: "Staff Product Manager",
-  currentCompany: "Character.AI",
+  currentRole: "Product Manager (seeking)",
+  currentCompany: "Not currently employed",
   yearsExperience: 10,
   companyTypes: ["Big Tech", "AI Startup", "Media/Entertainment"],
   productsShipped: [

@@ -17,7 +17,7 @@ import { ProfileCard } from "@/components/profile/profile-card";
 const navItems = [
   { href: "/about-me", label: "About Me", icon: User, gated: false, locked: false },
   { href: "/resume", label: "Resume", icon: FileText, gated: true, locked: false },
-  { href: "/outreach", label: "Outreach", icon: Mail, gated: false, locked: true },
+  { href: "/outreach", label: "Outreach", icon: Mail, gated: true, locked: false },
   { href: "/interview", label: "Interview", icon: MessageSquare, gated: true, locked: false },
   { href: "/negotiate", label: "Negotiate", icon: DollarSign, gated: true, locked: false },
 ];
@@ -50,18 +50,22 @@ export function Sidebar() {
           const isActive = pathname === item.href;
           const Icon = item.icon;
 
-          const isLocked = item.locked || (item.gated && !isGateOpen);
+          const isLocked = state.isLoaded && (item.locked || (item.gated && !isGateOpen));
 
           if (isLocked) {
             return (
               <div
                 key={item.href}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 cursor-not-allowed"
+                title="Profile required"
                 data-testid={`nav-${item.label.toLowerCase()}-locked`}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
-                <Lock size={14} className="ml-auto" />
+                <span className="ml-auto flex items-center gap-1">
+                  <span className="text-xs text-slate-300">Profile required</span>
+                  <Lock size={14} />
+                </span>
               </div>
             );
           }

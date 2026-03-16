@@ -16,7 +16,9 @@ export function ProfileCard() {
 
   const percentage = Math.round(completeness * 100);
   const displayName = profile?.name ?? "New User";
-  const displayRole = profile?.currentRole ?? "Complete your profile";
+  const displayRole = profile?.currentCompany === "Not currently employed"
+    ? "Funemployed"
+    : profile?.currentRole ?? "Complete your profile";
 
   return (
     <div

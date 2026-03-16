@@ -7,15 +7,15 @@ import { PROFILE_GATE_THRESHOLD } from "@/lib/utils/constants";
 
 interface GatedPageProps {
   children: React.ReactNode;
-  locked?: boolean;
 }
 
-export function GatedPage({ children, locked }: GatedPageProps) {
+export function GatedPage({ children }: GatedPageProps) {
   const { state } = useProfile();
-  const isGated = locked || state.completeness < PROFILE_GATE_THRESHOLD;
+  const isGated = state.completeness < PROFILE_GATE_THRESHOLD;
   const percentComplete = Math.round(state.completeness * 100);
 
-  if (!isGated) {
+  // Don't show gate until profile has hydrated from localStorage
+  if (!state.isLoaded || !isGated) {
     return <>{children}</>;
   }
 
@@ -25,21 +25,17 @@ export function GatedPage({ children, locked }: GatedPageProps) {
         <Lock size={24} className="text-slate-400" />
       </div>
       <h2 className="mt-4 text-lg font-semibold text-slate-800">
-        {locked ? "Coming Soon" : "Profile incomplete"}
+        Profile Required
       </h2>
       <p className="mt-2 text-sm text-slate-500">
-        {locked
-          ? "This section is not yet available. Check back soon!"
-          : `Complete at least 70% of your profile in About Me to unlock this section. You're currently at ${percentComplete}%.`}
+        Complete at least 70% of your profile in About Me to unlock this section. You&apos;re currently at {percentComplete}%.
       </p>
-      {!locked && (
-        <Link
-          href="/about-me"
-          className="mt-4 inline-block rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
-        >
-          Continue in About Me
-        </Link>
-      )}
+      <Link
+        href="/about-me"
+        className="mt-4 inline-block rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+      >
+        Continue in About Me
+      </Link>
     </div>
   );
 }
