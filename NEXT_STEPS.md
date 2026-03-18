@@ -1,7 +1,21 @@
 # Next Steps — PMGuide
 
-## Current Status
-All Stripe/Supabase subscription code is implemented and builds successfully. The 6 Stripe/Supabase env vars in `.env.local` are still placeholders. Follow this walkthrough to connect everything.
+## Current Status (Session 9 — 2026-03-17)
+
+### What's Done
+- **About Me chatbot** — profile collection, learning style, profile gate (70% threshold)
+- **Resume section** — upload, critique (Sonnet 4), generate, fork, branch chat, scoring (weighted in code), voice input
+- **Interview Lab** — structured practice, question bank, grading, model answers, ask-expert chat
+- **Negotiation Lab** — 5 modes (coach, crafter, recruiter sim, offer analysis, expert demo)
+- **Outreach section** — cold email/LinkedIn templates, research-backed prompts
+- **Auth & billing** — NextAuth (Google), Stripe checkout/portal/webhooks, Prisma/Supabase user model, admin bypass, subscription gating middleware
+
+### What's Next
+1. **Connect Stripe + Supabase** — env vars are placeholders, follow walkthrough below
+2. **Testing** — E2E tests for auth flow, subscription gating, webhook handling
+3. **Production deploy** — Vercel env vars, production Stripe webhook endpoint
+4. **Analytics** — track usage per user now that auth exists
+5. **Polish** — error states, loading skeletons, mobile responsiveness audit
 
 ---
 
@@ -126,15 +140,13 @@ All Stripe/Supabase subscription code is implemented and builds successfully. Th
 
 ## What's Already Implemented
 
-- Prisma schema with `User` model (`prisma/schema.prisma`)
-- Stripe checkout, portal, webhook routes (`src/app/api/stripe/`)
-- NextAuth with Google provider + JWT subscription status (`src/lib/auth/`)
-- Login page (`src/app/login/`)
-- Subscribe page with Stripe Checkout redirect (`src/app/subscribe/`)
-- Middleware for subscription gating (`src/middleware.ts`)
-- Admin email bypass (skip paywall for specified emails)
-- Manage Billing button in sidebar (Stripe Customer Portal)
-- `.env.local` with placeholder values ready to fill in
+- **Core features**: About Me chatbot, Resume (critique/generate/fork/branch), Interview Lab, Negotiation Lab, Outreach
+- **AI routing**: Sonnet 4 for quality tasks, Haiku for chat, per-task temperature overrides
+- **Auth**: NextAuth + Google OAuth, JWT with subscription status, admin email bypass
+- **Billing**: Stripe checkout, portal, webhook routes, subscription gating middleware
+- **Database**: Prisma schema with `User` model on Supabase (Postgres)
+- **UI**: Sidebar with billing management, profile gate, voice input (Web Speech API)
+- **All API routes** protected with `requireAuth()`, rate limiting keyed to user email
 
 ---
 
@@ -144,3 +156,4 @@ All Stripe/Supabase subscription code is implemented and builds successfully. Th
 - **Webhook 400 errors**: Make sure `stripe listen` is running and `STRIPE_WEBHOOK_SECRET` matches the CLI output
 - **Redirect loop on `/subscribe`**: Clear cookies, or check that the JWT callback in `auth.ts` is correctly reading subscription status
 - **"Subscription required" after paying**: The JWT caches subscription status — call `session.update()` to refresh, or sign out and back in
+- **Google OAuth errors**: Ensure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set, and redirect URI matches `http://localhost:3000/api/auth/callback/google`
