@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateResumeFile, validatePdfMagicBytes } from "@/lib/resume/validators";
 import { parsePdf } from "@/lib/resume/pdf-parser";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { MAX_FILE_SIZE } from "@/lib/utils/constants";
 
 // ---------------------------------------------------------------------------
@@ -53,12 +54,13 @@ function errorResponse(
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    if (!checkRateLimit(ip)) {
+    // Rate limiting
+    const rateLimitKey = session.user!.email!;
+
+    if (!checkRateLimit(rateLimitKey)) {
       return errorResponse(
         "RATE_LIMITED",
         "Too many upload requests. Please wait a moment and try again.",

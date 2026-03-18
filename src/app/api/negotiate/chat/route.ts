@@ -3,6 +3,7 @@ import { streamChat, AiError } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { createStreamResponse, textEvent } from "@/lib/ai/streaming";
 import { buildRecruiterChatPrompt } from "@/lib/prompts/negotiate-recruiter";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { SimulatorConfig, NegotiationTurn, BudgetCeiling } from "@/types/negotiation";
 
 function errorJson(code: string, message: string, status: number) {
@@ -14,6 +15,9 @@ function errorJson(code: string, message: string, status: number) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const {
       config,

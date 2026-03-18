@@ -4,6 +4,7 @@ import { streamChat, AiError } from "@/lib/ai/client";
 import { getModelForTask } from "@/lib/ai/models";
 import { createStreamResponse, textEvent } from "@/lib/ai/streaming";
 import { buildResumeForkPrompt } from "@/lib/prompts/resume-fork";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { UserProfile } from "@/lib/utils/profile";
 
 // ---------------------------------------------------------------------------
@@ -75,12 +76,13 @@ function errorResponse(
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    if (!checkRateLimit(ip)) {
+    // Rate limiting
+    const rateLimitKey = session.user!.email!;
+
+    if (!checkRateLimit(rateLimitKey)) {
       return errorResponse(
         "RATE_LIMITED",
         "Too many requests. Please wait a moment and try again.",

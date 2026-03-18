@@ -3,11 +3,15 @@ import { callChat } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { buildQuestionGenerationPrompt } from "@/lib/prompts/interview-lab";
 import { getRandomBankQuestion } from "@/lib/interview/question-bank";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { InterviewCompany, InterviewQuestionType } from "@/lib/prompts/interview";
 import type { Question } from "@/types/interview";
 
 export async function POST(request: Request) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const {
       company,

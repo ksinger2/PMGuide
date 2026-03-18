@@ -14,8 +14,13 @@ export function GatedPage({ children }: GatedPageProps) {
   const isGated = state.completeness < PROFILE_GATE_THRESHOLD;
   const percentComplete = Math.round(state.completeness * 100);
 
-  // Don't show gate until profile has hydrated from localStorage
-  if (!state.isLoaded || !isGated) {
+  // Wait for localStorage hydration before deciding
+  if (!state.isLoaded) {
+    return null;
+  }
+
+  // Gate passed — show content
+  if (!isGated) {
     return <>{children}</>;
   }
 

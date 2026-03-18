@@ -3,6 +3,7 @@ import { z } from "zod";
 import { callChatWithTool, AiError, type ToolDefinition } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { buildResumeCritiquePrompt } from "@/lib/prompts/resume-critique";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { UserProfile } from "@/lib/utils/profile";
 
 // ---------------------------------------------------------------------------
@@ -136,12 +137,13 @@ const RESUME_CRITIQUE_TOOL: ToolDefinition = {
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    if (!checkRateLimit(ip)) {
+    // Rate limiting
+    const rateLimitKey = session.user!.email!;
+
+    if (!checkRateLimit(rateLimitKey)) {
       return errorResponse(
         "RATE_LIMITED",
         "Too many requests. Please wait a moment and try again.",

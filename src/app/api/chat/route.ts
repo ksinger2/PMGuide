@@ -18,6 +18,7 @@ import { buildNegotiateCoachPrompt } from "@/lib/prompts/negotiate-coach";
 import { buildNegotiateCrafterPrompt } from "@/lib/prompts/negotiate-crafter";
 import { buildAskExpertPrompt } from "@/lib/prompts/interview-ask-expert";
 import { buildOutreachSystemPrompt } from "@/lib/prompts/outreach";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { CrafterContext } from "@/types/negotiation";
 import type { OutreachContext } from "@/types/outreach";
 import type { UserProfile } from "@/lib/utils/profile";
@@ -123,12 +124,13 @@ function stripProfileUpdateTag(text: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    if (!checkRateLimit(ip)) {
+    // Rate limiting
+    const rateLimitKey = session.user!.email!;
+
+    if (!checkRateLimit(rateLimitKey)) {
       return errorResponse(
         "RATE_LIMITED",
         "Too many requests. Please wait a moment and try again.",

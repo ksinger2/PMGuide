@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callChat } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { buildEvaluateTurnPrompt } from "@/lib/prompts/negotiate-recruiter";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { SimulatorConfig, NegotiationTurn } from "@/types/negotiation";
 
 function stripFences(text: string): string {
@@ -29,6 +30,9 @@ function validateEval(obj: unknown): obj is EvalResult {
 
 export async function POST(request: Request) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const { config, turns, latestUserMessage } = body as {
       config: SimulatorConfig;

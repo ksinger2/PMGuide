@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { callChat } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { CalculatorOffer } from "@/types/negotiation";
 import { formatCurrency } from "@/lib/negotiate/calc-utils";
 
 export async function POST(request: Request) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const { offers, comparisons } = body as {
       offers: CalculatorOffer[];

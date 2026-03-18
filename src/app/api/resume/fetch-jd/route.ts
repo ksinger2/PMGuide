@@ -3,6 +3,7 @@ import { z } from "zod";
 import * as cheerio from "cheerio";
 import { streamChat } from "@/lib/ai/client";
 import { getModelForTask } from "@/lib/ai/models";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 // ---------------------------------------------------------------------------
 // Request validation
@@ -219,11 +220,12 @@ function extractTextFromHtml(html: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    if (!checkRateLimit(ip)) {
+    const rateLimitKey = session.user!.email!;
+
+    if (!checkRateLimit(rateLimitKey)) {
       return errorResponse(
         "RATE_LIMITED",
         "Too many requests. Please wait a moment.",

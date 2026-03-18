@@ -129,6 +129,11 @@ export default function ResumePage() {
     setGenerateResult(null);
   }, []);
 
+  // Wait for profile hydration before rendering anything
+  if (!state.isLoaded) {
+    return null;
+  }
+
   if (isLocked) {
     return (
       <div data-testid="resume-page">

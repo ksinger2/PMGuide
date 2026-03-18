@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callChat } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { buildScenarioPrompt } from "@/lib/prompts/negotiate-recruiter";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { SimulatorConfig, BudgetCeiling } from "@/types/negotiation";
 
 function stripFences(text: string): string {
@@ -39,6 +40,9 @@ function validateScenario(obj: unknown): obj is ScenarioResponse {
 
 export async function POST(request: Request) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const config = body as SimulatorConfig;
 

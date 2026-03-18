@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callChat } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { buildModelAnswerPrompt } from "@/lib/prompts/interview-lab";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { InterviewCompany, InterviewQuestionType } from "@/lib/prompts/interview";
 import type { ModelAnswer } from "@/types/interview";
 
@@ -26,6 +27,9 @@ function validateModelAnswer(obj: unknown): obj is ModelAnswer {
 
 export async function POST(request: Request) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const { company, questionType, question } = body as {
       company: InterviewCompany | "any";

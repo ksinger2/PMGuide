@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callChat } from "@/lib/ai/client";
 import { getModelForTask, TASK_OVERRIDES } from "@/lib/ai/models";
 import { buildExpertDemoPrompt } from "@/lib/prompts/negotiate-expert";
+import { requireAuth } from "@/lib/auth/require-auth";
 import type { NegotiationCompany, ScenarioType, DifficultyLevel, ExpertNegotiation } from "@/types/negotiation";
 
 function stripFences(text: string): string {
@@ -26,6 +27,9 @@ function validateExpert(obj: unknown): obj is ExpertNegotiation {
 
 export async function POST(request: Request) {
   try {
+    const { session, error } = await requireAuth();
+    if (error) return error;
+
     const body = await request.json();
     const { company, scenario, difficulty } = body as {
       company: NegotiationCompany;
