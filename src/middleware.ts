@@ -1,47 +1,38 @@
-import { auth } from "@/lib/auth/auth";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PREFIXES = ["/login", "/api/auth", "/_next/", "/favicon.ico", "/images/", "/api/stripe/webhook"];
+const PUBLIC_PATHS = ["/", "/_next/", "/favicon.ico", "/images/"];
 
 function isPublic(pathname: string): boolean {
-  if (pathname === "/") return true;
-  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  return PUBLIC_PATHS.some((prefix) => pathname.startsWith(prefix));
 }
 
-export default auth((req) => {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Allow public paths
   if (isPublic(pathname)) {
     return NextResponse.next();
   }
 
-  if (!req.auth) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
+  // Check for Cloudflare Access header
+  const cfEmail = req.headers.get("cf-access-authenticated-user-email");
 
-  // Subscription check for authenticated users
-  const status = (req.auth.user as { subscriptionStatus?: string })?.subscriptionStatus;
-  const hasAccess = status === "active" || status === "past_due";
+  // Development bypass
+  const isDev = process.env.NODE_ENV === "development";
+  const devEmail = process.env.DEV_USER_EMAIL;
 
-  // These paths must be accessible to unpaid authenticated users
-  if (pathname.startsWith("/subscribe") || pathname.startsWith("/api/stripe")) {
+  if (cfEmail || (isDev && devEmail)) {
     return NextResponse.next();
   }
 
-  if (!hasAccess) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Subscription required" }, { status: 403 });
-    }
-    return NextResponse.redirect(new URL("/subscribe", req.url));
+  // No auth - reject
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.next();
-});
+  // For pages, return 401 (Cloudflare Access handles the login redirect)
+  return new NextResponse("Unauthorized", { status: 401 });
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],

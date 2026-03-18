@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ProfileProvider } from "@/stores/profile-context";
-import { SessionProvider } from "@/components/providers/session-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,19 +31,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <SessionProvider>
-          <ProfileProvider>
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <main className="flex-1 lg:ml-60 pb-20 lg:pb-0">
-                <div className="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
-                  {children}
-                </div>
-              </main>
-            </div>
-            <MobileNav />
-          </ProfileProvider>
-        </SessionProvider>
+        <ProfileProvider>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 lg:ml-60 pb-20 lg:pb-0">
+              <div className="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
+                {children}
+              </div>
+            </main>
+          </div>
+          <MobileNav />
+        </ProfileProvider>
       </body>
     </html>
   );

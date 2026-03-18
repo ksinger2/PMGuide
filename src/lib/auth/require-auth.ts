@@ -1,17 +1,26 @@
-import { auth } from "@/lib/auth/auth";
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "./cloudflare";
 
-export async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return { session: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+type RequireAuthResult =
+  | { session: { user: { email: string } }; error: null }
+  | { session: null; error: NextResponse };
+
+/**
+ * Helper for API routes to require authentication.
+ * Returns the user session or an error response.
+ */
+export async function requireAuth(): Promise<RequireAuthResult> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return {
+      session: null,
+      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
   }
 
-  // Defense in depth: check subscription status
-  const status = session.user.subscriptionStatus;
-  if (status !== "active" && status !== "past_due") {
-    return { session: null, error: NextResponse.json({ error: "Subscription required" }, { status: 403 }) };
-  }
-
-  return { session, error: null };
+  return {
+    session: { user: { email: user.email } },
+    error: null,
+  };
 }

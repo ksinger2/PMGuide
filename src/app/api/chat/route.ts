@@ -125,10 +125,10 @@ function stripProfileUpdateTag(text: string): string {
 export async function POST(request: NextRequest) {
   try {
     const { session, error } = await requireAuth();
-    if (error) return error;
+    if (error || !session) return error!;
 
     // Rate limiting
-    const rateLimitKey = session.user!.email!;
+    const rateLimitKey = session.user.email;
 
     if (!checkRateLimit(rateLimitKey)) {
       return errorResponse(

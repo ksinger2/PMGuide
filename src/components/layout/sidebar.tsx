@@ -9,9 +9,7 @@ import {
   MessageSquare,
   DollarSign,
   Lock,
-  CreditCard,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useProfile } from "@/stores/profile-context";
 import { PROFILE_GATE_THRESHOLD } from "@/lib/utils/constants";
 import { ProfileCard } from "@/components/profile/profile-card";
@@ -26,20 +24,8 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
   const { state } = useProfile();
 
-  const isSubscribed =
-    session?.user?.subscriptionStatus === "active" ||
-    session?.user?.subscriptionStatus === "past_due";
-
-  async function handleManageBilling() {
-    const res = await fetch("/api/stripe/portal", { method: "POST" });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    }
-  }
   const isGateOpen = state.completeness >= PROFILE_GATE_THRESHOLD;
 
   return (
@@ -104,15 +90,6 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-slate-200 p-4 space-y-3">
-        {isSubscribed && (
-          <button
-            onClick={handleManageBilling}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
-          >
-            <CreditCard size={16} />
-            Manage Billing
-          </button>
-        )}
         <ProfileCard />
       </div>
     </aside>
