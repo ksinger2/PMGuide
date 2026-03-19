@@ -1,5 +1,150 @@
 # Next Steps — PMGuide
 
+---
+
+## Docker Setup (Run on Windows PC)
+
+> **For Claude Code:** This section contains commands you can execute on the Windows PC (WSL).
+> **Full guide:** See [`docs/DOCKER_SETUP.md`](docs/DOCKER_SETUP.md) for detailed explanations and troubleshooting.
+
+### Architecture
+```
+Windows Boot → Task Scheduler → WSL (systemd) → Docker Engine → PMGuide container
+```
+
+### Step 1: Enable systemd in WSL
+
+```bash
+# Check if systemd is already enabled
+cat /etc/wsl.conf
+```
+
+If `[boot] systemd=true` is not present, add it:
+```bash
+sudo tee -a /etc/wsl.conf << 'EOF'
+[boot]
+systemd=true
+EOF
+```
+
+> ⚠️ **Manual step required:** User must run `wsl --shutdown` from PowerShell, then reopen WSL.
+
+Verify systemd is running:
+```bash
+systemctl --version
+```
+
+---
+
+### Step 2: Install Docker Engine
+
+```bash
+# Remove old versions
+sudo apt-get remove docker docker-engine docker.io containerd runc 2>/dev/null || true
+
+# Install prerequisites
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+
+# Add Docker's GPG key
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Add Docker repo
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker Engine
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Add user to docker group
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Enable Docker to start with systemd
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+Verify:
+```bash
+docker run hello-world
+```
+
+---
+
+### Step 3: Build and Start PMGuide
+
+```bash
+cd /mnt/c/Users/[YourUser]/path/to/PMGuide
+
+# Build the image
+docker compose build
+
+# Start the container (detached)
+docker compose up -d
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f
+```
+
+Test in browser: http://localhost:3000
+
+---
+
+### Step 4: Windows Auto-Start (Task Scheduler)
+
+> ⚠️ **Manual step required:** User must create this task in Windows Task Scheduler.
+
+**Option A: PowerShell (as Admin)**
+```powershell
+$action = New-ScheduledTaskAction -Execute "wsl.exe" -Argument "-d Ubuntu -u root -- systemctl start docker"
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+
+Register-ScheduledTask -TaskName "StartWSLDocker" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+```
+
+**Option B: Manual setup**
+1. Open Task Scheduler (`taskschd.msc`)
+2. Create Basic Task → "StartWSLDocker"
+3. Trigger: "When the computer starts"
+4. Action: Start `wsl.exe` with arguments `-d Ubuntu`
+5. Enable: "Run whether user is logged on or not" + "Run with highest privileges"
+
+---
+
+### Verification Checklist
+
+- [ ] `/etc/wsl.conf` has `systemd=true`
+- [ ] `systemctl status docker` shows active
+- [ ] `docker compose up -d` starts PMGuide
+- [ ] http://localhost:3000 loads PMGuide
+- [ ] Windows Task Scheduler has "StartWSLDocker" task
+- [ ] Reboot PC → PMGuide accessible at localhost:3000
+
+---
+
+### Management Commands
+
+```bash
+docker compose logs -f pmguide   # View logs
+docker compose restart           # Restart container
+docker compose down              # Stop container
+docker compose build --no-cache  # Rebuild after code changes
+docker compose up -d             # Start again
+```
+
+---
+
 ## Current Status (Session 13 — 2026-03-17)
 
 ### Session 13 Update: Chrome MCP for Browser Automation
