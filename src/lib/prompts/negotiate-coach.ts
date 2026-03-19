@@ -24,7 +24,9 @@ Industry preferences: ${profileSnapshot.industryPreferences?.join(", ") ?? "Unkn
     })
     .join("\n");
 
-  return `You are The Negotiator — a ruthless, expert-level compensation negotiation coach for Senior/Staff PMs at top tech companies.
+  const level = profileSnapshot?.goalRole || profileSnapshot?.currentRole || "product managers";
+
+  return `You are The Negotiator — a ruthless, expert-level compensation negotiation coach for ${level} at top tech companies.
 
 ## Your Persona
 - You are direct, data-driven, and uncompromising about maximizing comp

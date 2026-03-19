@@ -23,6 +23,7 @@ export interface ProfileState {
   completeness: number;
   isLoaded: boolean;
   isSyncing: boolean;
+  userEmail: string | null;
 }
 
 const initialState: ProfileState = {
@@ -30,6 +31,7 @@ const initialState: ProfileState = {
   completeness: 0,
   isLoaded: false,
   isSyncing: false,
+  userEmail: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -41,6 +43,7 @@ type ProfileAction =
   | { type: "UPDATE_PROFILE"; payload: Partial<UserProfile> }
   | { type: "SET_LOADED" }
   | { type: "SET_SYNCING"; payload: boolean }
+  | { type: "SET_USER_EMAIL"; payload: string }
   | { type: "RESET" };
 
 function profileReducer(
@@ -71,6 +74,8 @@ function profileReducer(
       return { ...state, isLoaded: true };
     case "SET_SYNCING":
       return { ...state, isSyncing: action.payload };
+    case "SET_USER_EMAIL":
+      return { ...state, userEmail: action.payload };
     case "RESET":
       return { ...initialState, isLoaded: true };
     default:
@@ -103,6 +108,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const res = await fetch("/api/profile");
         if (res.ok) {
           const data = await res.json();
+          // Set user email if provided
+          if (data.email) {
+            dispatch({ type: "SET_USER_EMAIL", payload: data.email });
+          }
           if (data.profile) {
             dispatch({ type: "LOAD_PROFILE", payload: data.profile });
             // Also update localStorage as cache

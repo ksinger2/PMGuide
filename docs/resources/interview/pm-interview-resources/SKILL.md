@@ -109,10 +109,10 @@ Rotate types across sessions. Don't repeat same type consecutively unless reques
 
 ## Candidate Profile
 
-- **Name:** Karen
-- **Level targeting:** Staff PM / Senior PM
-- **Background:** Computer engineering + 10+ years PM. Google/YouTube, Character.AI, Viacom. Founded YouTube Avatars team, Character.AI Creator + Monetization teams. Led $100M+ acquisition. Strong AI/ML, consumer, creator ecosystem background.
-- **Target companies:** Anthropic, Netflix, Meta, Google, OpenAI, Roblox
+- **Name:** [Loaded from user profile]
+- **Level targeting:** [Based on user's goalRole from About Me]
+- **Background:** [Populated from user's About Me profile during interview sessions]
+- **Target companies:** [User's target companies if specified]
 - **Strengths (observed):** TBD
 - **Areas to develop (observed):** TBD
 - **Question types completed:** None yet

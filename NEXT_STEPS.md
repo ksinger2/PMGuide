@@ -1,6 +1,18 @@
 # Next Steps — PMGuide
 
-## Current Status (Session 9 — 2026-03-17)
+## Current Status (Session 13 — 2026-03-17)
+
+### Session 13 Update: Chrome MCP for Browser Automation
+Chrome DevTools MCP server was configured in `~/.claude/settings.json` to enable Claude agents to control Chrome programmatically. This will help with Stripe/Supabase account setup.
+
+**To activate Chrome MCP (next session):**
+1. Launch Chrome: `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/ChromeDebugProfile"`
+2. Restart Claude Code
+3. Run `/mcp` to verify tools are available
+
+---
+
+## Previous Status (Session 9)
 
 ### What's Done
 - **About Me chatbot** — profile collection, learning style, profile gate (70% threshold)

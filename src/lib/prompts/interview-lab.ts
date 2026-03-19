@@ -27,7 +27,7 @@ export function buildQuestionGenerationPrompt(
   return `You are an expert PM interview coach specializing in ${typeLabel} questions.
 ${companyContext}
 
-Generate ONE ${typeLabel} interview question for a Staff/Senior PM candidate. Make it specific, realistic, and the kind of question that would actually be asked in a real interview.
+Generate ONE ${typeLabel} interview question for a PM candidate. Make it specific, realistic, and the kind of question that would actually be asked in a real interview.
 
 Return ONLY the question text. No preamble, no labels, no quotation marks, no numbering.`;
 }

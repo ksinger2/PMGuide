@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/cloudflare";
 import type { UserProfile } from "@/lib/utils/profile";
+
+// Lazy-load prisma only if DB is configured
+async function getPrisma() {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
+  const { prisma } = await import("@/lib/db");
+  return prisma;
+}
 
 /**
  * GET /api/profile
@@ -14,15 +22,26 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-  });
-
-  if (!dbUser) {
-    return NextResponse.json({ profile: null });
+  const prisma = await getPrisma();
+  if (!prisma) {
+    // No DB configured - return null, client will use localStorage
+    return NextResponse.json({ profile: null, email: user.email });
   }
 
-  return NextResponse.json({ profile: dbUser.profile as unknown as UserProfile | null });
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ profile: null, email: user.email });
+    }
+
+    return NextResponse.json({ profile: dbUser.profile as unknown as UserProfile | null, email: user.email });
+  } catch {
+    // DB error - return null, client will use localStorage
+    return NextResponse.json({ profile: null, email: user.email });
+  }
 }
 
 /**
@@ -43,19 +62,29 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Missing profile data" }, { status: 400 });
   }
 
-  // Upsert: create user if doesn't exist, update if does
-  const dbUser = await prisma.user.upsert({
-    where: { email: user.email },
-    update: {
-      profile: profile as object,
-      name: profile.name,
-    },
-    create: {
-      email: user.email,
-      profile: profile as object,
-      name: profile.name,
-    },
-  });
+  const prisma = await getPrisma();
+  if (!prisma) {
+    // No DB configured - just acknowledge, client uses localStorage
+    return NextResponse.json({ profile });
+  }
 
-  return NextResponse.json({ profile: dbUser.profile as unknown as UserProfile });
+  try {
+    const dbUser = await prisma.user.upsert({
+      where: { email: user.email },
+      update: {
+        profile: profile as object,
+        name: profile.name,
+      },
+      create: {
+        email: user.email,
+        profile: profile as object,
+        name: profile.name,
+      },
+    });
+
+    return NextResponse.json({ profile: dbUser.profile as unknown as UserProfile });
+  } catch {
+    // DB error - just acknowledge, client uses localStorage
+    return NextResponse.json({ profile });
+  }
 }

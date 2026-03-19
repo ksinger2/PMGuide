@@ -4,9 +4,15 @@ import { UserCircle2 } from "lucide-react";
 import { useProfile } from "@/stores/profile-context";
 import { karenProfile } from "@/data/karen-profile";
 
+const DEBUG_EMAIL = process.env.NEXT_PUBLIC_DEBUG_EMAIL;
+
 export function QuickLoadButton() {
   const { state, dispatch } = useProfile();
 
+  // Only show for debug user
+  if (!DEBUG_EMAIL || state.userEmail !== DEBUG_EMAIL) return null;
+
+  // Hide once profile is mostly complete
   if (state.completeness >= 0.7) return null;
 
   return (
@@ -17,7 +23,7 @@ export function QuickLoadButton() {
       data-testid="quick-load-profile"
     >
       <UserCircle2 size={18} />
-      I'm Karen — load my profile
+      Load debug profile
     </button>
   );
 }

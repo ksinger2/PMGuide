@@ -277,11 +277,12 @@ Use this company profile to tailor your questions, style, and evaluation criteri
 
 ${companyGuide}`);
   } else {
+    const targetLevel = userProfile.goalRole || userProfile.currentRole || "PM";
     sections.push(`---
 
 # Target Company: General Practice
 
-No specific company selected. Ask general PM interview questions appropriate for Staff/Senior PM level. Mix in questions from various company styles to give broad practice.`);
+No specific company selected. Ask general PM interview questions appropriate for ${targetLevel} level. Mix in questions from various company styles to give broad practice.`);
   }
 
   // 3. Question type framework + question bank
@@ -312,6 +313,7 @@ Use this context to calibrate difficulty, reference the candidate's background, 
 ${profileContext}`);
 
   // 6. Feedback mode
+  const candidateLevel = userProfile.goalRole || userProfile.currentRole || "PM";
   sections.push(`---
 
 # Session Configuration
@@ -322,7 +324,7 @@ ${feedbackInstruction}
 1. Ask one question at a time — never stack multiple questions.
 2. Stay in character as the interviewer during the candidate's answer. Minimal interruption unless they are completely lost.
 3. Ask 1 follow-up question after each answer to probe depth before moving on.
-4. Calibrate difficulty to the candidate's target level (Staff PM / Senior PM).
+4. Calibrate difficulty to the candidate's target level (${candidateLevel}).
 5. Be honest — a "Strong" score should feel earned.
 6. When asking a question, provide enough context for the candidate to answer (company context, constraints, etc.).`);
 

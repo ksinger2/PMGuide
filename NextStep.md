@@ -5,10 +5,96 @@
 ---
 
 ## Last Updated
-2026-03-16 — Session 12
+2026-03-18 — Session 14
 
 ## Session Summary
-Session 12: Outreach message quality overhaul (research-backed brevity) + profile hydration bug fix.
+Session 14: Remove hardcoded personal data, make PM level references dynamic across all prompts.
+
+What was done this session:
+
+### 1. Gated Debug Profile Button
+- `src/components/profile/quick-load-button.tsx` — only renders for `NEXT_PUBLIC_DEBUG_EMAIL`
+- `src/stores/profile-context.tsx` — added `userEmail` to state, fetches from API
+- `src/app/api/profile/route.ts` — now returns `email` in GET response
+- Button text changed from "I'm Karen" to "Load debug profile"
+
+### 2. Removed Personal Data from SKILL.md
+- `docs/resources/interview/pm-interview-resources/SKILL.md` — replaced hardcoded candidate profile (Karen's background, companies, etc.) with dynamic placeholders
+
+### 3. Made Prompts Level-Dynamic
+- `src/lib/prompts/interview.ts` — uses `profile.goalRole` or `currentRole` instead of hardcoded "Staff/Senior PM"
+- `src/lib/prompts/interview-lab.ts` — removed hardcoded level assumption in question generation
+- `src/lib/prompts/negotiate-coach.ts` — uses dynamic level from profile
+
+### 4. Environment Variable
+- Added `NEXT_PUBLIC_DEBUG_EMAIL` to `.env.local`
+
+### Files Modified (7)
+- `src/components/profile/quick-load-button.tsx`
+- `src/stores/profile-context.tsx`
+- `src/app/api/profile/route.ts`
+- `docs/resources/interview/pm-interview-resources/SKILL.md`
+- `src/lib/prompts/interview.ts`
+- `src/lib/prompts/interview-lab.ts`
+- `src/lib/prompts/negotiate-coach.ts`
+- `.env.local`
+
+### What's Preserved
+- `karen-profile.ts` stays for debugging (gated by email match)
+- All existing functionality unchanged
+- Resume prompts already had dynamic level detection via `getLevelGuidance()` and `getPMLevel()`
+
+---
+
+### Previous Session (13)
+Session 13: Chrome MCP setup for browser automation + Stripe/Supabase integration prep.
+
+What was done this session:
+
+### 1. Chrome MCP Server Configuration
+Added Chrome DevTools MCP server to global Claude Code settings (`~/.claude/settings.json`):
+```json
+"mcpServers": {
+  "chrome-devtools": {
+    "command": "npx",
+    "args": ["-y", "@anthropic-ai/mcp-server-chrome-devtools"]
+  }
+}
+```
+
+**Purpose:** Enable Claude agents to control Chrome browser programmatically for:
+- Automated signup flows (Stripe, Supabase)
+- Form filling and navigation
+- Reading page content
+- Taking screenshots
+
+### 2. Setup Steps Remaining (for next session)
+The Chrome MCP was configured but not yet tested. Next session needs to:
+
+1. **Launch Chrome with remote debugging:**
+   ```bash
+   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/ChromeDebugProfile"
+   ```
+
+2. **Restart Claude Code** to load the new MCP server
+
+3. **Verify MCP connection** by running `/mcp` to see available Chrome tools
+
+4. **Complete Stripe setup** — use Chrome MCP to help with:
+   - Creating Stripe account (if not already done)
+   - Getting API keys (publishable + secret)
+   - Creating product + price ($12.99/mo PMGuide Monthly)
+   - Enabling customer portal
+   - Setting up webhook endpoints
+
+5. **Complete Supabase setup** — use Chrome MCP to help with:
+   - Creating Supabase project
+   - Getting database connection strings
+   - Running `npx prisma db push`
+
+### Previous Session (12)
+- Outreach prompt overhaul (research-backed brevity)
+- Profile hydration bug fix (4 files)
 
 What was done this session:
 
@@ -91,7 +177,7 @@ Research-backed rewrite of the outreach system prompt for shorter, higher-conver
 - [x] Sidebar profile card with live completeness
 - [x] Chat history persistence (localStorage)
 - [x] Profile editor form (8 core fields, Chat|Profile tabs)
-- [x] "I'm Karen" quick-load button
+- [x] Debug profile button (gated to NEXT_PUBLIC_DEBUG_EMAIL)
 - [x] POST /api/resume/upload (PDF parsing with pdf-parse v2)
 - [x] POST /api/resume/critique (non-streaming, tool_use, Sonnet 4, temp=0.0, calibrated rubric)
 - [x] POST /api/resume/generate (SSE, Sonnet 4)
@@ -131,11 +217,18 @@ Research-backed rewrite of the outreach system prompt for shorter, higher-conver
   - Response Crafter with candidate context input for mid-conversation refinement
   - 6 API routes, 20 components, 4 prompts
   - Session state hook (useReducer + localStorage)
+- [x] Dynamic PM level in all prompts (interview, negotiate, resume) — no hardcoded "Senior PM" assumptions
 - [x] Vitest unit tests — 76/76 passing (6 test files)
 - [x] Production build succeeds with all routes
 - [x] `/reinit` command exists with full agent team (8 agents)
 
 ### What's NOT Done
+- [ ] **Chrome MCP verification** — MCP config added but not tested yet. Need to:
+  1. Launch Chrome with `--remote-debugging-port=9222`
+  2. Restart Claude Code
+  3. Run `/mcp` to verify Chrome tools load
+  4. Test basic navigation/interaction
+- [ ] **Stripe + Supabase credentials** — `.env.local` has placeholders. Use Chrome MCP to help complete signup flows and get real credentials.
 - [ ] **Live manual testing** — Negotiate feature needs manual verification:
   1. Simulator: run a full multi-turn negotiation, check grading
   2. Expert Demo: watch a full AI negotiation
@@ -158,6 +251,20 @@ Research-backed rewrite of the outreach system prompt for shorter, higher-conver
 - [ ] E2E tests need re-run after Session 9/10 changes
 
 ## Priority Next Steps
+
+### 0. Complete Chrome MCP + Stripe/Supabase Setup (BLOCKING)
+This is the highest priority. The app cannot go live without real credentials.
+
+**Chrome MCP Setup:**
+1. Close Chrome completely
+2. Launch with debugging: `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/ChromeDebugProfile"`
+3. Restart Claude Code
+4. Run `/mcp` to verify Chrome tools are available
+
+**Then use Chrome MCP to help with:**
+- Stripe: Create account → Get API keys → Create product ($12.99/mo) → Enable portal → Setup webhooks
+- Supabase: Create project → Get connection strings → Run `npx prisma db push`
+- Update `.env.local` with real credentials (see NEXT_STEPS.md for full checklist)
 
 ### 1. Outreach Manual Testing
 Test all 3 audiences (hiring-manager, recruiter, referral) × 2 formats (email, LinkedIn). Verify: messages under 75 words (email) / 50 words (LinkedIn), subject lines under 40 chars lowercase, lead with recipient, one ask, no AI buzzwords, no em dashes. Test refinement ("make it shorter").
@@ -206,7 +313,13 @@ Key Session 10 patterns: `useNegotiationSession` hook follows interview pattern 
 4 new prompt files: recruiter (adversarial with hidden ceiling), expert (strategic demonstration), coach (parallel tactical advice), grade (structured scoring). Recruiter prompt includes budget ceiling mechanics — AI must negotiate realistically without revealing the max. Coach prompt analyzes conversation history and suggests specific tactics.
 
 ### DevOps Engineer
-No infra changes. 18 total API routes now. CI/CD still needed. Build passes clean.
+**Session 13 changes:** Chrome MCP server added to `~/.claude/settings.json` for browser automation. This enables Claude agents to help with Stripe/Supabase account setup via Chrome DevTools Protocol.
+
+**Chrome MCP requires:**
+- Chrome launched with `--remote-debugging-port=9222`
+- Separate user profile recommended: `--user-data-dir="$HOME/ChromeDebugProfile"`
+
+18 total API routes. CI/CD still needed. Build passes clean.
 
 ### QA Engineer
 76 tests passing (was 61). New: `calc-utils.test.ts` covers TC calculation, equity vesting, comparison logic. E2E tests needed for negotiate flows. Manual testing checklist: all 5 modes, profile gate enforcement, calculator math accuracy.
