@@ -9,7 +9,7 @@
 
 ### Architecture
 ```
-Windows Boot → Task Scheduler → WSL (systemd) → Docker Engine → PMGuide container
+SSH in → WSL starts → systemd starts Docker → Docker restarts PMGuide container
 ```
 
 ### Step 1: Enable systemd in WSL
@@ -99,37 +99,37 @@ Test in browser: http://localhost:3000
 
 ---
 
-### Step 4: Windows Auto-Start (Task Scheduler)
+### Step 4: Auto-Start (Already Configured)
 
-> ⚠️ **Manual step required:** User must create this task in Windows Task Scheduler.
+No Task Scheduler needed. The boot chain handles everything:
 
-**Option A: PowerShell (as Admin)**
-```powershell
-$action = New-ScheduledTaskAction -Execute "wsl.exe" -Argument "-d Ubuntu -u root -- systemctl start docker"
-$trigger = New-ScheduledTaskTrigger -AtStartup
-$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+1. **SSH in** → WSL starts automatically
+2. **systemd** starts Docker (`systemctl is-enabled docker` → `enabled`)
+3. **Docker** restarts the PMGuide container (`restart: always` in `docker-compose.yml`)
 
-Register-ScheduledTask -TaskName "StartWSLDocker" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+The container stays alive across WSL restarts. As long as you SSH in (which starts WSL), Docker and PMGuide come up on their own.
+
+**Verify the chain is configured:**
+```bash
+# systemd enabled?
+grep -q 'systemd=true' /etc/wsl.conf && echo "OK" || echo "MISSING"
+
+# Docker auto-starts?
+systemctl is-enabled docker
+
+# Container restarts automatically?
+grep 'restart:' docker-compose.yml
 ```
-
-**Option B: Manual setup**
-1. Open Task Scheduler (`taskschd.msc`)
-2. Create Basic Task → "StartWSLDocker"
-3. Trigger: "When the computer starts"
-4. Action: Start `wsl.exe` with arguments `-d Ubuntu`
-5. Enable: "Run whether user is logged on or not" + "Run with highest privileges"
 
 ---
 
 ### Verification Checklist
 
-- [ ] `/etc/wsl.conf` has `systemd=true`
-- [ ] `systemctl status docker` shows active
-- [ ] `docker compose up -d` starts PMGuide
-- [ ] http://localhost:3000 loads PMGuide
-- [ ] Windows Task Scheduler has "StartWSLDocker" task
-- [ ] Reboot PC → PMGuide accessible at localhost:3000
+- [x] `/etc/wsl.conf` has `systemd=true`
+- [x] `systemctl is-enabled docker` returns `enabled`
+- [x] `docker compose up -d` starts PMGuide
+- [x] http://localhost:3000 loads PMGuide
+- [ ] After reboot: SSH in → `docker compose ps` shows container running → localhost:3000 loads
 
 ---
 
