@@ -1,5 +1,26 @@
 import { test, expect } from "@playwright/test";
 
+// Complete profile to bypass gates
+const completeProfile = {
+  name: "Test User",
+  currentRole: "Product Manager",
+  currentCompany: "Test Corp",
+  yearsExperience: "5",
+  companyTypes: ["B2B SaaS"],
+  productsShipped: "3",
+  keyMetrics: "DAU, Revenue",
+  frameworks: ["RICE"],
+};
+
+async function setupWithProfile(page: import("@playwright/test").Page, route: string) {
+  await page.goto(route);
+  await page.evaluate((profile) => {
+    localStorage.setItem("pmguide-profile", JSON.stringify(profile));
+  }, completeProfile);
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+}
+
 test.describe("Dashboard", () => {
   test("loads with all section cards", async ({ page }) => {
     await page.goto("/");
@@ -15,26 +36,27 @@ test.describe("Dashboard", () => {
   });
 
   test("clicking Resume card navigates to /resume", async ({ page }) => {
-    await page.goto("/");
+    await setupWithProfile(page, "/");
     await page.getByTestId("dashboard-card-resume").click();
     await expect(page).toHaveURL(/\/resume/);
   });
 });
 
-test.describe("Stub pages show Coming Soon", () => {
-  const stubRoutes = ["/outreach", "/negotiate"];
+test.describe("Feature pages load", () => {
+  test("/outreach shows outreach page", async ({ page }) => {
+    await setupWithProfile(page, "/outreach");
+    await expect(page.getByTestId("outreach-page")).toBeVisible();
+  });
 
-  for (const route of stubRoutes) {
-    test(`${route} shows Coming Soon`, async ({ page }) => {
-      await page.goto(route);
-      await expect(page.getByTestId("coming-soon")).toBeVisible();
-    });
-  }
+  test("/negotiate shows negotiate page", async ({ page }) => {
+    await setupWithProfile(page, "/negotiate");
+    await expect(page.getByTestId("negotiate-page")).toBeVisible();
+  });
 });
 
 test.describe("Interview page loads", () => {
   test("/interview shows setup UI", async ({ page }) => {
-    await page.goto("/interview");
+    await setupWithProfile(page, "/interview");
     await expect(page.getByTestId("interview-page")).toBeVisible();
   });
 });

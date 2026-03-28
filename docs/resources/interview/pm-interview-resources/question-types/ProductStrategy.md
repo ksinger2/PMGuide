@@ -7,13 +7,13 @@ Market analysis, competitive analysis, business strategy, roadmapping, long-term
 
 ## 7-Step Framework
 
-1. **Clarify** — Scope nouns, verbs, assumptions. Eliminate vagueness.
-2. **Define company/product goals** — Key value drivers, existing strategies, strengths/weaknesses
-3. **Define the landscape** — Market & competition, public opinion, technology (existing + emerging), regulation
-4. **Define guiding principles** — Snapshot of situation capturing business rationale and priority (e.g. "Customer trust is our #1 priority")
-5. **Establish option set** — Generate ideas, then filter weak options based on principles
-6. **Make decision & argue for it** — Evaluate by: Scale, Impact, Cost, Risk, Likelihood of success, Additional benefits
-7. **Evaluate & recap** — Tradeoffs, what you'd do differently with more time, how you'd mitigate risks
+1. **Clarify** — Scope nouns, verbs, assumptions. Eliminate vagueness. Understand ecosystem context (how does this fit with existing products and strategy?).
+2. **Define company/product goals** — Key value drivers, existing strategies, strengths/weaknesses. How does this connect to the broader product portfolio?
+3. **Define the landscape** — Market & competition, public opinion, technology (existing + emerging), regulation. Segment the market: who are the 2-3 key user/customer segments? How are they affected differently by competitive and market forces?
+4. **Define guiding principles** — Snapshot of situation capturing business rationale and priority (e.g. "Customer trust is our #1 priority"). Which segments does each principle prioritize?
+5. **Establish option set** — Generate ideas, then filter weak options based on principles. Compare options by segment impact — which segments benefit, which are underserved?
+6. **Make decision & argue for it** — Evaluate by: Scale, Impact (by segment), Cost, Risk, Likelihood of success, Additional benefits, Ecosystem effects. Justify segment prioritization with TAM/growth/strategic fit.
+7. **Evaluate & recap** — Cross-segment tradeoffs (what are we sacrificing?), ecosystem implications, what you'd do differently with more time, how you'd mitigate risks
 
 ---
 
@@ -62,6 +62,9 @@ Framework:
 - Failing to consider tradeoffs
 - Weak competitive analysis
 - No clear recommendation — don't be wishy-washy
+- **Treating the market as monolithic** — always segment customers/users and show how strategy affects each
+- **Ignoring ecosystem effects** — how does this strategy impact other products, teams, or user segments?
+- **Hiding segment trade-offs** — every strategic choice prioritizes some segments over others; name the cost
 
 ---
 

@@ -7,13 +7,13 @@ User empathy, feature prioritization, product vision, business acumen, creativit
 
 ## 7-Step Framework
 
-1. **Clarify** — Ask clarifying questions to understand scope and constraints
-2. **Define the user** — Identify specific segments, pick the most important, build a persona (goals, needs, pain points)
-3. **Define the problem** — Articulate pain points from the user's POV
-4. **Brainstorm solutions** — Go broad before narrowing; avoid jumping to solutions
-5. **Forward-looking product vision** — What does this look like in 5-10 years? Create a tagline
-6. **Prioritize features** — Define MVP by impact (how many users, how deeply), effort (eng complexity), and risk
-7. **Evaluate & recap** — Tradeoffs, success metrics, potential risks
+1. **Clarify** — Ask clarifying questions to understand scope, constraints, and ecosystem context (how does this fit with existing products/features?)
+2. **Define the user** — Identify 2-3 specific user segments. Compare by TAM, growth rate, pain severity, and strategic fit. Pick one to prioritize and explain WHY. Build a detailed persona (goals, needs, pain points). Acknowledge what you're trading off by not prioritizing other segments.
+3. **Define the problem** — Articulate pain points from the prioritized user's POV. Consider how the problem manifests differently across segments.
+4. **Brainstorm solutions** — Go broad before narrowing; avoid jumping to solutions. Consider ecosystem implications — how do solutions affect other products, features, or user segments?
+5. **Forward-looking product vision** — What does this look like in 5-10 years? How does it fit within the broader product ecosystem? Create a tagline.
+6. **Prioritize features** — Define MVP by impact (which segments, how many users, how deeply), effort (eng complexity), and risk. Show trade-offs: what are we NOT building and why?
+7. **Evaluate & recap** — Cross-segment tradeoffs, ecosystem impact, success metrics, potential risks
 
 ---
 
@@ -23,6 +23,9 @@ User empathy, feature prioritization, product vision, business acumen, creativit
 - Ignoring business context
 - Failing to prioritize
 - Not discussing success metrics
+- **Treating "users" as monolithic** — always segment, compare, and justify your selection
+- **Ignoring ecosystem** — how does this affect other products, features, or user segments?
+- **Hiding trade-offs** — every prioritization decision has a cost; name it
 
 ---
 

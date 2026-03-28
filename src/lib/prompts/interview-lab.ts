@@ -119,6 +119,30 @@ ${companyContext}
 ## Framework
 ${framework}
 
+## Critical Model Answer Requirements
+
+Every model answer MUST demonstrate these three elements that separate strong candidates from average ones:
+
+### 1. User Segmentation & Prioritization
+- Identify 2-3 distinct user segments (by behavior, geography, use case, or value driver)
+- Explain WHY you're prioritizing one segment over others (TAM, growth rate, strategic fit, pain severity)
+- Show the segment selection reasoning: "I'm focusing on Segment X because [data/logic]"
+- Acknowledge what you're trading off by not prioritizing other segments
+
+### 2. Ecosystem & Platform Thinking
+- How does this product/feature fit within the broader product ecosystem?
+- What interdependencies exist with other products, features, or teams?
+- How do changes here affect other parts of the platform or other user segments?
+- Consider network effects, platform dynamics, and cross-product implications
+
+### 3. Explicit Trade-offs Across Segments
+- By choosing this approach, what are we sacrificing for other user segments?
+- How do we mitigate negative impact on non-prioritized segments?
+- Where do we find leverage that helps multiple segments simultaneously?
+- Acknowledge the cost of the decision, not just the benefit
+
+These elements must appear explicitly in the example fields, not just mentioned abstractly.
+
 ## Instructions
 Write a model answer for this question following the framework. Return ONLY valid JSON matching this exact schema — no markdown fences, no commentary, no extra text:
 
@@ -130,14 +154,14 @@ Write a model answer for this question following the framework. Return ONLY vali
       "title": "<step name from the framework>",
       "why": "<why this step matters — what it signals to the interviewer>",
       "what": "<what to actually say or do at this step>",
-      "example": "<specific example content tied to this exact question>"
+      "example": "<specific example content tied to this exact question — MUST include segmentation, ecosystem, or trade-off thinking where relevant>"
     }
   ],
   "keyInsights": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "watchOut": ["<pitfall 1>", "<pitfall 2>"]
 }
 
-Include all framework steps. Make the example field highly specific to the question, not generic.`;
+Include all framework steps. Make the example field highly specific to the question, not generic. The example fields MUST demonstrate the segmentation, ecosystem, and trade-off thinking described above.`;
 
   const userMessage = `**Question:** ${question}`;
 

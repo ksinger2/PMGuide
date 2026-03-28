@@ -131,7 +131,7 @@ export function BranchTabs({
 
   return (
     <div
-      className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin"
+      className="relative z-40 flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin"
       data-testid="branch-tabs"
     >
       {branches.map((branch) => (
