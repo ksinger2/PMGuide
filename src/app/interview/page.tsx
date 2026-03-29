@@ -12,10 +12,14 @@ import { AskExpertChat } from "@/components/interview/ask-expert-chat";
 import { ResultsScreen } from "@/components/interview/results-screen";
 import { GatedPage } from "@/components/layout/gated-page";
 import { useInterviewSession } from "@/hooks/use-interview-session";
+import { useProfile } from "@/stores/profile-context";
 import type { SessionConfig, Question, Feedback, ModelAnswer } from "@/types/interview";
 import type { InterviewQuestionType } from "@/lib/prompts/interview";
 
 export default function InterviewPage() {
+  const { state: profileState } = useProfile();
+  const profile = profileState.profile;
+
   const {
     state,
     currentType,
@@ -120,6 +124,7 @@ export default function InterviewPage() {
           company: state.config.company,
           questionType: state.currentQuestion.type,
           question: state.currentQuestion.text,
+          userProfile: profile,
         }),
       })
         .then(async (res) => {
@@ -135,7 +140,7 @@ export default function InterviewPage() {
           setError("Network error — could not generate model answer");
         });
     }
-  }, [state.screen, state.mode, state.config, state.currentQuestion, state.isLoading, setLoading, setModelAnswer, setError]);
+  }, [state.screen, state.mode, state.config, state.currentQuestion, state.isLoading, profile, setLoading, setModelAnswer, setError]);
 
   // ---------------------------------------------------------------------------
   // Submit answer → parallel grade + model answer
@@ -164,6 +169,7 @@ export default function InterviewPage() {
             company: state.config.company,
             questionType: state.currentQuestion.type,
             question: state.currentQuestion.text,
+            userProfile: profile,
           }),
         }),
       ]);
@@ -187,7 +193,7 @@ export default function InterviewPage() {
     } catch {
       setError("Network error — could not analyze answer");
     }
-  }, [state.config, state.currentQuestion, state.currentAnswer, submitAnswer, setResults, setError]);
+  }, [state.config, state.currentQuestion, state.currentAnswer, profile, submitAnswer, setResults, setError]);
 
   // ---------------------------------------------------------------------------
   // Different question

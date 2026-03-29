@@ -83,15 +83,17 @@ export interface ModelStep {
   example: string;
 }
 
+export type SegmentationLens = "skill" | "motivation" | "role" | "usage" | "context";
+
 export interface SegmentInfo {
-  name: string;
-  description: string;
-  size: string;
-  painSeverity: string;
-  strategicFit: string;
+  name: string;               // Behavioral name (NOT demographic)
+  description: string;        // Who they are + their context
+  keyNeed: string;            // Primary unmet need
+  currentWorkaround: string;  // How they solve this today
 }
 
 export interface SegmentAnalysis {
+  segmentationLens: SegmentationLens;
   segments: SegmentInfo[];
   prioritized: string;
   tradeoff: string;

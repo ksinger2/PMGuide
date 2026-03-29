@@ -101,7 +101,8 @@ Include ALL rubric signals for this question type.`;
 export function buildModelAnswerPrompt(
   company: InterviewCompany | "any",
   questionType: InterviewQuestionType,
-  question: string
+  question: string,
+  profile?: Partial<UserProfile>
 ): { systemPrompt: string; userMessage: string } {
   const typeLabel = QUESTION_TYPE_LABELS[questionType];
   const framework = questionTypeGuides[questionType];
@@ -111,6 +112,32 @@ export function buildModelAnswerPrompt(
       ? `\n\nCompany: ${company.charAt(0).toUpperCase() + company.slice(1)}\n${companyGuides[company]}`
       : "";
 
+  // Determine PM level from profile
+  const yearsExp = profile?.yearsExperience ?? 3;
+  const pmLevel = yearsExp >= 6 ? "senior" : "junior";
+
+  const levelGuidance = pmLevel === "senior"
+    ? `
+## ANSWER DEPTH: SENIOR PM
+
+This model answer targets a senior PM candidate. Expectations:
+- Connect features to business strategy (revenue, retention, competitive moat)
+- Discuss cross-functional dependencies (Eng, Design, Legal, Ops)
+- Consider market positioning and long-term platform effects
+- Address organizational constraints and stakeholder alignment
+- Quantify impact with business metrics (ARR, LTV, market share)
+- Show systems thinking — how changes ripple across the product ecosystem`
+    : `
+## ANSWER DEPTH: JUNIOR PM
+
+This model answer targets a junior PM candidate. Expectations:
+- Focus on user problems and feature solutions
+- Show clear user flows and interaction design thinking
+- Define success metrics at the feature level (engagement, conversion)
+- Demonstrate structured thinking (framework application)
+- Consider basic trade-offs (scope, timeline, resources)
+- Prioritize clarity and execution over strategic depth`;
+
   const systemPrompt = `${skillPersona}
 
 You are in teaching mode. You are the ${typeLabel} specialist. Your job is to write a model answer that teaches the candidate the correct framework and approach.
@@ -118,6 +145,7 @@ ${companyContext}
 
 ## Framework
 ${framework}
+${levelGuidance}
 
 ## MANDATORY: What Separates Strong from Average Candidates
 
@@ -126,14 +154,47 @@ Average candidates pick ONE user and solve their problem. Strong candidates:
 2. **Think in ecosystems** — how does this affect the broader product, other teams, other user segments?
 3. **Name the trade-offs** — what are we sacrificing by this choice? How do we mitigate?
 
+## SEGMENTATION (MECE)
+
+Choose the lens that creates the most ACTIONABLE differences:
+
+| Lens | When to Use | Example Segments |
+|------|-------------|------------------|
+| **Skill/Experience** | Learning products, tools | Beginners, Power Users, Experts |
+| **Motivation** | Social/entertainment products | Learners, Socializers, Achievers |
+| **Role** | Multi-stakeholder products | Parents, Children, Teachers |
+| **Usage Pattern** | Collaboration/consumption | Individual vs Group, Creator vs Consumer |
+| **Context** | Time-sensitive products | Commuters, At-home, On-the-go |
+
+Pick ONE lens. Segments should be:
+- **Mutually Exclusive** (no overlap)
+- **Collectively Exhaustive** (covers the market)
+- **Behaviorally distinct** (different needs → different solutions)
+
+❌ AVOID: Age ranges, income brackets, company size, geographic location
+✅ USE: Behavioral patterns, motivations, usage contexts, skill levels
+
 ### BAD Example (average candidate):
 "Our user is Sarah, a busy professional who needs..."
 → WRONG: Jumped straight to one persona without showing segment analysis
 
+"Segment 1: Tech-Comfortable Seniors (65-75), Size: 25M"
+→ WRONG: Demographic segmentation — age doesn't explain motivation
+
 ### GOOD Example (strong candidate):
-"I see three user segments: (1) Power users who... (2) Casual users who... (3) Enterprise admins who...
-Comparing by pain severity and TAM: Power users have highest pain but smallest TAM. Casual users have moderate pain but 10x the TAM. I'll prioritize casual users because [reasoning], but this means power users will [trade-off]. To mitigate, we could [mitigation]."
-→ RIGHT: Shows the thinking, not just the conclusion
+"I'll segment by motivation (what drives their usage):
+(1) 'Connection Seekers' — craving daily family touchpoints
+    - Key need: Async sharing without scheduling
+    - Current workaround: Wait for weekly phone calls
+(2) 'Memory Preservers' — archiving life for future generations
+    - Key need: Organized, searchable photo storage
+    - Current workaround: Scattered across devices and cloud services
+(3) 'Reluctant Adopters' — pushed onto platform by family pressure
+    - Key need: Minimal friction, guided experience
+    - Current workaround: Ask family members to do it for them
+
+I'll prioritize Connection Seekers because their need is most urgent and current workarounds fail them completely."
+→ RIGHT: Shows clear lens choice with behavioral segments
 
 ## Instructions
 Write a model answer for this question. Return ONLY valid JSON matching this exact schema:
@@ -141,14 +202,30 @@ Write a model answer for this question. Return ONLY valid JSON matching this exa
 {
   "tagline": "<one-sentence strategy summary>",
   "segmentAnalysis": {
+    "segmentationLens": "<skill|motivation|role|usage|context>",
     "segments": [
-      {"name": "<segment 1>", "description": "<who they are>", "size": "<TAM/scale>", "painSeverity": "<low/medium/high>", "strategicFit": "<why they matter>"},
-      {"name": "<segment 2>", "description": "<who they are>", "size": "<TAM/scale>", "painSeverity": "<low/medium/high>", "strategicFit": "<why they matter>"},
-      {"name": "<segment 3>", "description": "<who they are>", "size": "<TAM/scale>", "painSeverity": "<low/medium/high>", "strategicFit": "<why they matter>"}
+      {
+        "name": "<behavioral name — NOT demographic>",
+        "description": "<who they are + their context>",
+        "keyNeed": "<primary unmet need>",
+        "currentWorkaround": "<how they solve this today>"
+      },
+      {
+        "name": "<segment 2>",
+        "description": "<description>",
+        "keyNeed": "<key need>",
+        "currentWorkaround": "<workaround>"
+      },
+      {
+        "name": "<segment 3>",
+        "description": "<description>",
+        "keyNeed": "<key need>",
+        "currentWorkaround": "<workaround>"
+      }
     ],
-    "prioritized": "<which segment and WHY — must reference comparison>",
-    "tradeoff": "<what we're sacrificing by not prioritizing other segments>",
-    "mitigation": "<how we address non-prioritized segments later>"
+    "prioritized": "<which segment and WHY>",
+    "tradeoff": "<what we sacrifice by not prioritizing others>",
+    "mitigation": "<how we address other segments later>"
   },
   "ecosystemContext": {
     "platformFit": "<how this fits the broader product ecosystem>",

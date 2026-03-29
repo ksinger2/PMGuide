@@ -5,6 +5,7 @@ import { buildModelAnswerPrompt } from "@/lib/prompts/interview-lab";
 import { requireAuth } from "@/lib/auth/require-auth";
 import type { InterviewCompany, InterviewQuestionType } from "@/lib/prompts/interview";
 import type { ModelAnswer } from "@/types/interview";
+import type { UserProfile } from "@/lib/utils/profile";
 
 function stripFences(text: string): string {
   return text
@@ -31,10 +32,11 @@ export async function POST(request: Request) {
     if (error) return error;
 
     const body = await request.json();
-    const { company, questionType, question } = body as {
+    const { company, questionType, question, userProfile } = body as {
       company: InterviewCompany | "any";
       questionType: InterviewQuestionType;
       question: string;
+      userProfile?: Partial<UserProfile>;
     };
 
     if (!question || !questionType) {
@@ -47,7 +49,8 @@ export async function POST(request: Request) {
     const { systemPrompt, userMessage } = buildModelAnswerPrompt(
       company,
       questionType,
-      question
+      question,
+      userProfile
     );
 
     const task = "interview-model";

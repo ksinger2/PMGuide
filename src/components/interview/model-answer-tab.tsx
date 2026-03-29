@@ -1,7 +1,15 @@
 "use client";
 
-import { Users, Network, ArrowRightLeft } from "lucide-react";
-import type { ModelAnswer } from "@/types/interview";
+import { Users, Network, RefreshCw, AlertCircle, Tag } from "lucide-react";
+import type { ModelAnswer, SegmentationLens } from "@/types/interview";
+
+const LENS_LABELS: Record<SegmentationLens, string> = {
+  skill: "By Skill Level",
+  motivation: "By Motivation",
+  role: "By Role",
+  usage: "By Usage Pattern",
+  context: "By Context",
+};
 
 interface ModelAnswerTabProps {
   modelAnswer: ModelAnswer;
@@ -17,33 +25,51 @@ export function ModelAnswerTab({ modelAnswer }: ModelAnswerTabProps) {
         </p>
       </div>
 
-      {/* Segment Analysis - NEW */}
+      {/* Segment Analysis */}
       {modelAnswer.segmentAnalysis && (
         <section className="rounded-lg border border-purple-200 bg-purple-50 p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <Users size={16} className="text-purple-600" />
-            <h3 className="text-sm font-semibold text-purple-800">
-              User Segmentation Analysis
-            </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-purple-600" />
+              <h3 className="text-sm font-semibold text-purple-800">
+                User Segmentation
+              </h3>
+            </div>
+            {modelAnswer.segmentAnalysis.segmentationLens && (
+              <span className="flex items-center gap-1 rounded-full bg-purple-200 px-2 py-0.5 text-[10px] font-semibold uppercase text-purple-700">
+                <Tag size={10} />
+                {LENS_LABELS[modelAnswer.segmentAnalysis.segmentationLens]}
+              </span>
+            )}
           </div>
 
-          <div className="mb-4 grid gap-2 sm:grid-cols-3">
+          <div className="mb-4 space-y-3">
             {modelAnswer.segmentAnalysis.segments.map((seg, i) => (
               <div
                 key={i}
-                className="rounded border border-purple-200 bg-white p-3"
+                className="rounded border border-purple-200 bg-white p-4"
               >
-                <p className="text-xs font-semibold text-purple-700">
+                <p className="text-sm font-semibold text-purple-700">
                   {seg.name}
                 </p>
                 <p className="mt-1 text-xs text-slate-600">{seg.description}</p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] text-purple-700">
-                    {seg.size}
-                  </span>
-                  <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] text-purple-700">
-                    Pain: {seg.painSeverity}
-                  </span>
+
+                {/* Key Need & Current Workaround */}
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle size={12} className="mt-0.5 text-orange-400" />
+                    <div>
+                      <span className="text-[10px] font-semibold uppercase text-orange-600">Key Need</span>
+                      <p className="text-xs text-slate-600">{seg.keyNeed}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <RefreshCw size={12} className="mt-0.5 text-slate-400" />
+                    <div>
+                      <span className="text-[10px] font-semibold uppercase text-slate-500">Current Workaround</span>
+                      <p className="text-xs text-slate-600">{seg.currentWorkaround}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
