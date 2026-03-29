@@ -94,22 +94,24 @@ export interface SegmentInfo {
 
 export interface SegmentAnalysis {
   segmentationLens: SegmentationLens;
+  whyThisLens?: string;           // Why this lens is most actionable for this platform
   segments: SegmentInfo[];
   prioritized: string;
   tradeoff: string;
   mitigation: string;
 }
 
-export interface EcosystemContext {
-  platformFit: string;
-  dependencies: string;
-  networkEffects: string;
+export interface PlatformContext {
+  whatItDoesToday: string;        // Current product/platform value proposition
+  strategicPriorities: string;    // Company's key goals this feature could serve
+  featureFit: string;             // How this feature fits into the existing ecosystem
+  dependencies: string;           // Teams, products, or infrastructure this touches
 }
 
 export interface ModelAnswer {
   tagline: string;
+  platformContext?: PlatformContext;
   segmentAnalysis?: SegmentAnalysis;
-  ecosystemContext?: EcosystemContext;
   steps: ModelStep[];
   keyInsights: string[];
   watchOut: string[];

@@ -121,11 +121,11 @@ export function buildModelAnswerPrompt(
 ## ANSWER DEPTH: SENIOR PM
 
 This model answer targets a senior PM candidate. Expectations:
-- Connect features to business strategy (revenue, retention, competitive moat)
-- Discuss cross-functional dependencies (Eng, Design, Legal, Ops)
+- Connect features to business strategy (how does this drive revenue, retention, or competitive moat?)
+- Discuss cross-functional dependencies (Eng, Design, Legal, Ops, Data)
 - Consider market positioning and long-term platform effects
 - Address organizational constraints and stakeholder alignment
-- Quantify impact with business metrics (ARR, LTV, market share)
+- Frame metrics at the business level (retention, revenue impact, market share) — describe the TYPE of metric, not specific numbers
 - Show systems thinking — how changes ripple across the product ecosystem`
     : `
 ## ANSWER DEPTH: JUNIOR PM
@@ -133,7 +133,7 @@ This model answer targets a senior PM candidate. Expectations:
 This model answer targets a junior PM candidate. Expectations:
 - Focus on user problems and feature solutions
 - Show clear user flows and interaction design thinking
-- Define success metrics at the feature level (engagement, conversion)
+- Frame success metrics at the feature level (engagement rate, conversion, task completion)
 - Demonstrate structured thinking (framework application)
 - Consider basic trade-offs (scope, timeline, resources)
 - Prioritize clarity and execution over strategic depth`;
@@ -147,16 +147,24 @@ ${companyContext}
 ${framework}
 ${levelGuidance}
 
-## MANDATORY: What Separates Strong from Average Candidates
+## CRITICAL: Platform Context FIRST, Then Segmentation
 
-Average candidates pick ONE user and solve their problem. Strong candidates:
-1. **Show their work on segmentation** — identify 2-3 segments, compare them, THEN pick one with explicit reasoning
-2. **Think in ecosystems** — how does this affect the broader product, other teams, other user segments?
+The order matters. Strong candidates:
+1. **Understand the platform ecosystem** — What does this product do today? What are its strategic priorities? How would this feature fit?
+2. **THEN segment users** — Based on the platform context, who are the relevant user segments?
 3. **Name the trade-offs** — what are we sacrificing by this choice? How do we mitigate?
 
-## SEGMENTATION (MECE)
+## PLATFORM CONTEXT (Step 2 in Framework)
 
-Choose the lens that creates the most ACTIONABLE differences:
+Before segmenting users, establish:
+- What the platform/product does today and its core value proposition
+- The company's strategic priorities (growth, retention, monetization, new markets)
+- How this feature would fit into the existing product ecosystem
+- Key dependencies (other teams, products, infrastructure)
+
+## SEGMENTATION (MECE) — Based on Platform Context
+
+Choose the lens that creates the most ACTIONABLE differences FOR THIS PLATFORM:
 
 | Lens | When to Use | Example Segments |
 |------|-------------|------------------|
@@ -171,66 +179,49 @@ Pick ONE lens. Segments should be:
 - **Collectively Exhaustive** (covers the market)
 - **Behaviorally distinct** (different needs → different solutions)
 
-❌ AVOID: Age ranges, income brackets, company size, geographic location
+❌ AVOID: Age ranges, income brackets, company size, geographic location, specific market sizes or percentages
 ✅ USE: Behavioral patterns, motivations, usage contexts, skill levels
 
-### BAD Example (average candidate):
-"Our user is Sarah, a busy professional who needs..."
-→ WRONG: Jumped straight to one persona without showing segment analysis
+## METRICS: Framework Over Fabrication
 
-"Segment 1: Tech-Comfortable Seniors (65-75), Size: 25M"
-→ WRONG: Demographic segmentation — age doesn't explain motivation
+Do NOT invent specific numbers (no "40% of users" or "$50M ARR"). Instead:
+- Name the TYPE of metric: "engagement rate," "conversion to paid," "retention at day 30"
+- Explain WHY that metric matters for this feature
+- Describe directional impact: "we expect to see higher retention" not "25% improvement"
 
-### GOOD Example (strong candidate):
-"I'll segment by motivation (what drives their usage):
-(1) 'Connection Seekers' — craving daily family touchpoints
-    - Key need: Async sharing without scheduling
-    - Current workaround: Wait for weekly phone calls
-(2) 'Memory Preservers' — archiving life for future generations
-    - Key need: Organized, searchable photo storage
-    - Current workaround: Scattered across devices and cloud services
-(3) 'Reluctant Adopters' — pushed onto platform by family pressure
-    - Key need: Minimal friction, guided experience
-    - Current workaround: Ask family members to do it for them
+### BAD (fabricated numbers):
+"Success: 40% of users engage weekly, 25% convert monthly, $50M ARR in year 1"
+→ WRONG: Interviewees don't have access to these numbers
 
-I'll prioritize Connection Seekers because their need is most urgent and current workarounds fail them completely."
-→ RIGHT: Shows clear lens choice with behavioral segments
+### GOOD (metric framework):
+"Success metrics: (1) Discovery engagement — are users exploring recommendations? (2) Conversion — do they visit recommended places? (3) Retention — do they return to the feature? We'd track these against baseline behavior to measure lift."
+→ RIGHT: Shows metric thinking without fabricating data
 
 ## Instructions
 Write a model answer for this question. Return ONLY valid JSON matching this exact schema:
 
 {
   "tagline": "<one-sentence strategy summary>",
+  "platformContext": {
+    "whatItDoesToday": "<current product/platform value proposition>",
+    "strategicPriorities": "<company's key goals this feature could serve>",
+    "featureFit": "<how this feature fits into the existing ecosystem>",
+    "dependencies": "<teams, products, or infrastructure this touches>"
+  },
   "segmentAnalysis": {
     "segmentationLens": "<skill|motivation|role|usage|context>",
+    "whyThisLens": "<why this lens is most actionable for THIS platform>",
     "segments": [
       {
         "name": "<behavioral name — NOT demographic>",
         "description": "<who they are + their context>",
         "keyNeed": "<primary unmet need>",
         "currentWorkaround": "<how they solve this today>"
-      },
-      {
-        "name": "<segment 2>",
-        "description": "<description>",
-        "keyNeed": "<key need>",
-        "currentWorkaround": "<workaround>"
-      },
-      {
-        "name": "<segment 3>",
-        "description": "<description>",
-        "keyNeed": "<key need>",
-        "currentWorkaround": "<workaround>"
       }
     ],
-    "prioritized": "<which segment and WHY>",
+    "prioritized": "<which segment and WHY — tie back to platform priorities>",
     "tradeoff": "<what we sacrifice by not prioritizing others>",
     "mitigation": "<how we address other segments later>"
-  },
-  "ecosystemContext": {
-    "platformFit": "<how this fits the broader product ecosystem>",
-    "dependencies": "<what other teams/products this affects>",
-    "networkEffects": "<any platform dynamics or cross-segment effects>"
   },
   "steps": [
     {
@@ -238,14 +229,14 @@ Write a model answer for this question. Return ONLY valid JSON matching this exa
       "title": "<step name from the framework>",
       "why": "<why this step matters — what it signals to the interviewer>",
       "what": "<what to actually say or do at this step>",
-      "example": "<specific example — reference your segmentAnalysis and ecosystemContext>"
+      "example": "<specific example for this question — NO fabricated numbers>"
     }
   ],
   "keyInsights": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "watchOut": ["<pitfall 1>", "<pitfall 2>"]
 }
 
-The segmentAnalysis and ecosystemContext fields are REQUIRED. Do not skip them. Include all framework steps.`;
+Include 2-3 segments. The platformContext field is REQUIRED and comes BEFORE segmentAnalysis. Include all 7 framework steps.`;
 
   const userMessage = `**Question:** ${question}`;
 

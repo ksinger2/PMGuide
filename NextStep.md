@@ -5,9 +5,100 @@
 ---
 
 ## Last Updated
-2026-03-18 — Session 14
+2026-03-29 — Session 15
 
 ## Session Summary
+Session 15: Interview Expert model answer restructuring — Platform Context first, MECE segmentation, no fabricated numbers.
+
+### What was done this session:
+
+### 1. Restructured Product Design Framework
+- **Platform Context comes FIRST** — understand the ecosystem before segmenting users
+- **Segmentation BASED on platform** — added `whyThisLens` field to explain lens choice
+- Updated `docs/resources/interview/pm-interview-resources/question-types/ProductDesign.md`
+
+### 2. Simplified Segment Structure (MECE)
+- Replaced verbose JTBD fields (functionalJob, emotionalJob, socialJob) with cleaner structure:
+  - `name` — behavioral name (NOT demographic)
+  - `description` — who they are + context
+  - `keyNeed` — primary unmet need
+  - `currentWorkaround` — how they solve this today
+- Added `segmentationLens` field (skill | motivation | role | usage | context)
+- Updated `src/types/interview.ts`
+
+### 3. Added PM Level-Based Answer Depth
+- Senior PM (6+ years): strategic/business focus, cross-functional dependencies, platform effects
+- Junior PM (<6 years): feature-level focus, user flows, execution clarity
+- Profile passed to model-answer API for level detection
+- Updated `src/lib/prompts/interview-lab.ts`, `src/app/api/interview/model-answer/route.ts`, `src/app/interview/page.tsx`
+
+### 4. Removed Fabricated Numbers
+- No more "40% of users" or "$50M ARR" in examples
+- Instead: describe TYPE of metric (engagement rate, retention, conversion) without specific numbers
+- Added explicit guidance in prompt: "Framework Over Fabrication"
+
+### 5. New JSON Schema for Model Answers
+```json
+{
+  "tagline": "...",
+  "platformContext": {
+    "whatItDoesToday": "...",
+    "strategicPriorities": "...",
+    "featureFit": "...",
+    "dependencies": "..."
+  },
+  "segmentAnalysis": {
+    "segmentationLens": "motivation",
+    "whyThisLens": "...",
+    "segments": [...],
+    "prioritized": "...",
+    "tradeoff": "...",
+    "mitigation": "..."
+  },
+  "steps": [...],
+  "keyInsights": [...],
+  "watchOut": [...]
+}
+```
+
+### 6. Updated UI Component
+- `src/components/interview/model-answer-tab.tsx` — Platform Context section shown FIRST, then Segmentation with lens badge
+
+### Files Modified (6)
+- `docs/resources/interview/pm-interview-resources/question-types/ProductDesign.md`
+- `src/types/interview.ts`
+- `src/lib/prompts/interview-lab.ts`
+- `src/app/api/interview/model-answer/route.ts`
+- `src/app/interview/page.tsx`
+- `src/components/interview/model-answer-tab.tsx`
+
+---
+
+## Next Session: Test Interview Expert Model Answers
+
+**TODO:** Generate 5 full product design model answers for senior PM and verify:
+1. Platform Context appears FIRST (before segmentation)
+2. Segmentation lens is explained (`whyThisLens`)
+3. Segments use behavioral names, not demographics
+4. NO fabricated specific numbers (percentages, ARR, market sizes)
+5. Senior answers focus on strategy/business; junior on features/execution
+6. 7 framework steps include "Platform Context" as step 2
+
+**Test commands:**
+```bash
+curl -X POST http://localhost:3000/api/interview/model-answer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company": "google",
+    "questionType": "product-design",
+    "question": "Design a feature for YouTube that helps creators grow their audience",
+    "userProfile": { "yearsExperience": 8 }
+  }'
+```
+
+---
+
+### Previous Session (14)
 Session 14: Remove hardcoded personal data, make PM level references dynamic across all prompts.
 
 What was done this session:

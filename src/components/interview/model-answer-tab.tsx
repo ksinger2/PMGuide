@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Network, RefreshCw, AlertCircle, Tag } from "lucide-react";
+import { Users, Layers, RefreshCw, AlertCircle, Tag } from "lucide-react";
 import type { ModelAnswer, SegmentationLens } from "@/types/interview";
 
 const LENS_LABELS: Record<SegmentationLens, string> = {
@@ -25,7 +25,54 @@ export function ModelAnswerTab({ modelAnswer }: ModelAnswerTabProps) {
         </p>
       </div>
 
-      {/* Segment Analysis */}
+      {/* Platform Context - FIRST */}
+      {modelAnswer.platformContext && (
+        <section className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Layers size={16} className="text-blue-600" />
+            <h3 className="text-sm font-semibold text-blue-800">
+              Platform Context
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                WHAT IT DOES TODAY:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.platformContext.whatItDoesToday}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                STRATEGIC PRIORITIES:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.platformContext.strategicPriorities}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                FEATURE FIT:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.platformContext.featureFit}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                DEPENDENCIES:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.platformContext.dependencies}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Segment Analysis - AFTER Platform Context */}
       {modelAnswer.segmentAnalysis && (
         <section className="rounded-lg border border-purple-200 bg-purple-50 p-4">
           <div className="mb-3 flex items-center justify-between">
@@ -42,6 +89,13 @@ export function ModelAnswerTab({ modelAnswer }: ModelAnswerTabProps) {
               </span>
             )}
           </div>
+
+          {/* Why This Lens */}
+          {modelAnswer.segmentAnalysis.whyThisLens && (
+            <p className="mb-3 text-xs italic text-purple-600">
+              {modelAnswer.segmentAnalysis.whyThisLens}
+            </p>
+          )}
 
           <div className="mb-4 space-y-3">
             {modelAnswer.segmentAnalysis.segments.map((seg, i) => (
@@ -98,45 +152,6 @@ export function ModelAnswerTab({ modelAnswer }: ModelAnswerTabProps) {
               </span>
               <span className="text-xs text-slate-700">
                 {modelAnswer.segmentAnalysis.mitigation}
-              </span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Ecosystem Context - NEW */}
-      {modelAnswer.ecosystemContext && (
-        <section className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <Network size={16} className="text-blue-600" />
-            <h3 className="text-sm font-semibold text-blue-800">
-              Ecosystem Context
-            </h3>
-          </div>
-
-          <div className="space-y-2">
-            <div>
-              <span className="text-xs font-semibold text-blue-700">
-                PLATFORM FIT:{" "}
-              </span>
-              <span className="text-xs text-slate-700">
-                {modelAnswer.ecosystemContext.platformFit}
-              </span>
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-blue-700">
-                DEPENDENCIES:{" "}
-              </span>
-              <span className="text-xs text-slate-700">
-                {modelAnswer.ecosystemContext.dependencies}
-              </span>
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-blue-700">
-                NETWORK EFFECTS:{" "}
-              </span>
-              <span className="text-xs text-slate-700">
-                {modelAnswer.ecosystemContext.networkEffects}
               </span>
             </div>
           </div>

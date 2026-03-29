@@ -7,13 +7,13 @@ User empathy, feature prioritization, product vision, business acumen, creativit
 
 ## 7-Step Framework
 
-1. **Clarify** — Ask clarifying questions to understand scope, constraints, and ecosystem context (how does this fit with existing products/features?)
-2. **Define the user** — Identify 2-3 specific user segments. Compare by TAM, growth rate, pain severity, and strategic fit. Pick one to prioritize and explain WHY. Build a detailed persona (goals, needs, pain points). Acknowledge what you're trading off by not prioritizing other segments.
-3. **Define the problem** — Articulate pain points from the prioritized user's POV. Consider how the problem manifests differently across segments.
-4. **Brainstorm solutions** — Go broad before narrowing; avoid jumping to solutions. Consider ecosystem implications — how do solutions affect other products, features, or user segments?
-5. **Forward-looking product vision** — What does this look like in 5-10 years? How does it fit within the broader product ecosystem? Create a tagline.
-6. **Prioritize features** — Define MVP by impact (which segments, how many users, how deeply), effort (eng complexity), and risk. Show trade-offs: what are we NOT building and why?
-7. **Evaluate & recap** — Cross-segment tradeoffs, ecosystem impact, success metrics, potential risks
+1. **Clarify** — Ask clarifying questions to understand scope and constraints. What's in/out of scope? What resources exist? What's the timeline?
+2. **Platform Context** — Understand the ecosystem FIRST. What does this product/platform do today? Who does it serve? What are its strategic priorities? How would this feature fit into the broader product? What dependencies exist (other teams, products, infrastructure)?
+3. **Define the user** — BASED ON the platform context, identify 2-3 user segments using behavioral lenses (motivation, skill level, usage pattern, role, context). Pick one to prioritize with clear reasoning. Acknowledge what you're trading off.
+4. **Define the problem** — Articulate pain points from the prioritized user's POV. What's their key unmet need? How do they solve this today (current workaround)?
+5. **Brainstorm solutions** — Go broad before narrowing. Consider ecosystem implications — how do solutions affect other products, features, or user segments?
+6. **Prioritize features** — Define MVP by impact, effort, and risk. Show trade-offs: what are we NOT building and why?
+7. **Evaluate & recap** — Success metrics (use frameworks like engagement/retention/conversion, not specific numbers), potential risks, how this strengthens the platform
 
 ---
 
