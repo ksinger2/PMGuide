@@ -1,5 +1,6 @@
 "use client";
 
+import { Users, Network, ArrowRightLeft } from "lucide-react";
 import type { ModelAnswer } from "@/types/interview";
 
 interface ModelAnswerTabProps {
@@ -15,6 +16,106 @@ export function ModelAnswerTab({ modelAnswer }: ModelAnswerTabProps) {
           {modelAnswer.tagline}
         </p>
       </div>
+
+      {/* Segment Analysis - NEW */}
+      {modelAnswer.segmentAnalysis && (
+        <section className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Users size={16} className="text-purple-600" />
+            <h3 className="text-sm font-semibold text-purple-800">
+              User Segmentation Analysis
+            </h3>
+          </div>
+
+          <div className="mb-4 grid gap-2 sm:grid-cols-3">
+            {modelAnswer.segmentAnalysis.segments.map((seg, i) => (
+              <div
+                key={i}
+                className="rounded border border-purple-200 bg-white p-3"
+              >
+                <p className="text-xs font-semibold text-purple-700">
+                  {seg.name}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">{seg.description}</p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] text-purple-700">
+                    {seg.size}
+                  </span>
+                  <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] text-purple-700">
+                    Pain: {seg.painSeverity}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2 border-t border-purple-200 pt-3">
+            <div>
+              <span className="text-xs font-semibold text-purple-700">
+                PRIORITIZED:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.segmentAnalysis.prioritized}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-amber-700">
+                TRADE-OFF:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.segmentAnalysis.tradeoff}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-emerald-700">
+                MITIGATION:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.segmentAnalysis.mitigation}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Ecosystem Context - NEW */}
+      {modelAnswer.ecosystemContext && (
+        <section className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Network size={16} className="text-blue-600" />
+            <h3 className="text-sm font-semibold text-blue-800">
+              Ecosystem Context
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                PLATFORM FIT:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.ecosystemContext.platformFit}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                DEPENDENCIES:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.ecosystemContext.dependencies}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-blue-700">
+                NETWORK EFFECTS:{" "}
+              </span>
+              <span className="text-xs text-slate-700">
+                {modelAnswer.ecosystemContext.networkEffects}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Steps */}
       <section>

@@ -119,49 +119,56 @@ ${companyContext}
 ## Framework
 ${framework}
 
-## Critical Model Answer Requirements
+## MANDATORY: What Separates Strong from Average Candidates
 
-Every model answer MUST demonstrate these three elements that separate strong candidates from average ones:
+Average candidates pick ONE user and solve their problem. Strong candidates:
+1. **Show their work on segmentation** — identify 2-3 segments, compare them, THEN pick one with explicit reasoning
+2. **Think in ecosystems** — how does this affect the broader product, other teams, other user segments?
+3. **Name the trade-offs** — what are we sacrificing by this choice? How do we mitigate?
 
-### 1. User Segmentation & Prioritization
-- Identify 2-3 distinct user segments (by behavior, geography, use case, or value driver)
-- Explain WHY you're prioritizing one segment over others (TAM, growth rate, strategic fit, pain severity)
-- Show the segment selection reasoning: "I'm focusing on Segment X because [data/logic]"
-- Acknowledge what you're trading off by not prioritizing other segments
+### BAD Example (average candidate):
+"Our user is Sarah, a busy professional who needs..."
+→ WRONG: Jumped straight to one persona without showing segment analysis
 
-### 2. Ecosystem & Platform Thinking
-- How does this product/feature fit within the broader product ecosystem?
-- What interdependencies exist with other products, features, or teams?
-- How do changes here affect other parts of the platform or other user segments?
-- Consider network effects, platform dynamics, and cross-product implications
-
-### 3. Explicit Trade-offs Across Segments
-- By choosing this approach, what are we sacrificing for other user segments?
-- How do we mitigate negative impact on non-prioritized segments?
-- Where do we find leverage that helps multiple segments simultaneously?
-- Acknowledge the cost of the decision, not just the benefit
-
-These elements must appear explicitly in the example fields, not just mentioned abstractly.
+### GOOD Example (strong candidate):
+"I see three user segments: (1) Power users who... (2) Casual users who... (3) Enterprise admins who...
+Comparing by pain severity and TAM: Power users have highest pain but smallest TAM. Casual users have moderate pain but 10x the TAM. I'll prioritize casual users because [reasoning], but this means power users will [trade-off]. To mitigate, we could [mitigation]."
+→ RIGHT: Shows the thinking, not just the conclusion
 
 ## Instructions
-Write a model answer for this question following the framework. Return ONLY valid JSON matching this exact schema — no markdown fences, no commentary, no extra text:
+Write a model answer for this question. Return ONLY valid JSON matching this exact schema:
 
 {
   "tagline": "<one-sentence strategy summary>",
+  "segmentAnalysis": {
+    "segments": [
+      {"name": "<segment 1>", "description": "<who they are>", "size": "<TAM/scale>", "painSeverity": "<low/medium/high>", "strategicFit": "<why they matter>"},
+      {"name": "<segment 2>", "description": "<who they are>", "size": "<TAM/scale>", "painSeverity": "<low/medium/high>", "strategicFit": "<why they matter>"},
+      {"name": "<segment 3>", "description": "<who they are>", "size": "<TAM/scale>", "painSeverity": "<low/medium/high>", "strategicFit": "<why they matter>"}
+    ],
+    "prioritized": "<which segment and WHY — must reference comparison>",
+    "tradeoff": "<what we're sacrificing by not prioritizing other segments>",
+    "mitigation": "<how we address non-prioritized segments later>"
+  },
+  "ecosystemContext": {
+    "platformFit": "<how this fits the broader product ecosystem>",
+    "dependencies": "<what other teams/products this affects>",
+    "networkEffects": "<any platform dynamics or cross-segment effects>"
+  },
   "steps": [
     {
       "number": <step number>,
       "title": "<step name from the framework>",
       "why": "<why this step matters — what it signals to the interviewer>",
       "what": "<what to actually say or do at this step>",
-      "example": "<specific example content tied to this exact question — MUST include segmentation, ecosystem, or trade-off thinking where relevant>"
+      "example": "<specific example — reference your segmentAnalysis and ecosystemContext>"
     }
   ],
   "keyInsights": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "watchOut": ["<pitfall 1>", "<pitfall 2>"]
 }
 
-Include all framework steps. Make the example field highly specific to the question, not generic. The example fields MUST demonstrate the segmentation, ecosystem, and trade-off thinking described above.`;
+The segmentAnalysis and ecosystemContext fields are REQUIRED. Do not skip them. Include all framework steps.`;
 
   const userMessage = `**Question:** ${question}`;
 

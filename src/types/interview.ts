@@ -83,8 +83,31 @@ export interface ModelStep {
   example: string;
 }
 
+export interface SegmentInfo {
+  name: string;
+  description: string;
+  size: string;
+  painSeverity: string;
+  strategicFit: string;
+}
+
+export interface SegmentAnalysis {
+  segments: SegmentInfo[];
+  prioritized: string;
+  tradeoff: string;
+  mitigation: string;
+}
+
+export interface EcosystemContext {
+  platformFit: string;
+  dependencies: string;
+  networkEffects: string;
+}
+
 export interface ModelAnswer {
   tagline: string;
+  segmentAnalysis?: SegmentAnalysis;
+  ecosystemContext?: EcosystemContext;
   steps: ModelStep[];
   keyInsights: string[];
   watchOut: string[];
