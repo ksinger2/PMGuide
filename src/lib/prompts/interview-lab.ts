@@ -147,25 +147,28 @@ ${companyContext}
 ${framework}
 ${levelGuidance}
 
-## CRITICAL: Platform Context FIRST, Then Segmentation
+## CRITICAL: Structure for Product Design Answers
 
-The order matters. Strong candidates:
-1. **Understand the platform ecosystem** — What does this product do today? What are its strategic priorities? How would this feature fit?
-2. **THEN segment users** — Based on the platform context, who are the relevant user segments?
-3. **Name the trade-offs** — what are we sacrificing by this choice? How do we mitigate?
+Strong candidates demonstrate DEPTH at each step, not just coverage. The answer should feel like a thoughtful conversation, not a checklist.
 
-## PLATFORM CONTEXT (Step 2 in Framework)
+### Opening: Set the Stage (Before diving in)
+Start by reflecting on WHY this question matters:
+- What's interesting or challenging about this space?
+- Why would this company care about solving this?
+- What's your initial hypothesis or angle?
 
-Before segmenting users, establish:
+This shows strategic thinking before jumping into the framework.
+
+### 1. PLATFORM CONTEXT (Understand the Ecosystem FIRST)
+Before anything else, establish:
 - What the platform/product does today and its core value proposition
 - The company's strategic priorities (growth, retention, monetization, new markets)
 - How this feature would fit into the existing product ecosystem
 - Key dependencies (other teams, products, infrastructure)
 
-## SEGMENTATION (MECE) — Based on Platform Context
+### 2. SEGMENTATION (MECE) — Based on Platform Context
 
-Choose the lens that creates the most ACTIONABLE differences FOR THIS PLATFORM:
-
+Choose the lens that creates the most ACTIONABLE differences:
 | Lens | When to Use | Example Segments |
 |------|-------------|------------------|
 | **Skill/Experience** | Learning products, tools | Beginners, Power Users, Experts |
@@ -174,33 +177,62 @@ Choose the lens that creates the most ACTIONABLE differences FOR THIS PLATFORM:
 | **Usage Pattern** | Collaboration/consumption | Individual vs Group, Creator vs Consumer |
 | **Context** | Time-sensitive products | Commuters, At-home, On-the-go |
 
-Pick ONE lens. Segments should be:
-- **Mutually Exclusive** (no overlap)
-- **Collectively Exhaustive** (covers the market)
-- **Behaviorally distinct** (different needs → different solutions)
-
-❌ AVOID: Age ranges, income brackets, company size, geographic location, specific market sizes or percentages
+❌ AVOID: Age, income, company size, geography, specific market sizes
 ✅ USE: Behavioral patterns, motivations, usage contexts, skill levels
 
-## METRICS: Framework Over Fabrication
+### 3. COMPREHENSIVE PROBLEM/NEEDS ANALYSIS
 
-Do NOT invent specific numbers (no "40% of users" or "$50M ARR"). Instead:
-- Name the TYPE of metric: "engagement rate," "conversion to paid," "retention at day 30"
-- Explain WHY that metric matters for this feature
-- Describe directional impact: "we expect to see higher retention" not "25% improvement"
+For your prioritized segment, analyze problems across THREE dimensions:
+1. **Psychological** — Fears, frustrations, aspirations, anxieties, emotional needs
+2. **Functional** — Tasks they're trying to accomplish, efficiency gaps, utility needs
+3. **Behavioral** — Current habits, friction points, workarounds, patterns
 
-### BAD (fabricated numbers):
-"Success: 40% of users engage weekly, 25% convert monthly, $50M ARR in year 1"
-→ WRONG: Interviewees don't have access to these numbers
+For each dimension, identify the PAIN POINTS — what hurts most?
 
-### GOOD (metric framework):
-"Success metrics: (1) Discovery engagement — are users exploring recommendations? (2) Conversion — do they visit recommended places? (3) Retention — do they return to the feature? We'd track these against baseline behavior to measure lift."
-→ RIGHT: Shows metric thinking without fabricating data
+Then PRIORITIZE: Which problem is most critical?
+- **HOW you prioritized** — What criteria did you use? (impact vs frequency vs severity)
+- **WHY this problem** — Why does this matter most for this user and this platform?
+
+### 4. SOLUTION BRAINSTORMING
+
+Generate 3-4 distinct solution approaches. Show breadth before depth:
+- Different technical approaches
+- Different UX paradigms
+- Build vs buy vs partner options
+- Incremental vs transformative options
+
+### 5. SOLUTION PRIORITIZATION WITH RISK ANALYSIS
+
+Pick your top solution. Explain:
+- **HOW you prioritized** — What criteria? (impact, feasibility, alignment, differentiation)
+- **WHY this solution wins** — What makes it better than alternatives?
+- **RISKS** — What could go wrong? Technical, adoption, competitive, organizational
+- **MITIGATIONS** — How would you address each risk?
+
+### 6. MVP DESIGN
+
+Define the Minimum Viable Product:
+- Core features (what's IN)
+- Explicit exclusions (what's OUT and why)
+- Success criteria for MVP
+- What you'd learn before expanding
+
+### 7. METRICS: Framework Over Fabrication
+
+Do NOT invent specific numbers. Instead:
+- Name the TYPE of metric: "engagement rate," "conversion to paid"
+- Explain WHY that metric matters
+- Describe directional impact, not specific targets
 
 ## Instructions
 Write a model answer for this question. Return ONLY valid JSON matching this exact schema:
 
 {
+  "openingReflection": {
+    "spaceContext": "<what's interesting/challenging about this space — 2-3 sentences>",
+    "whyItMatters": "<why this company should care about solving this>",
+    "initialAngle": "<your hypothesis or unique perspective on the problem>"
+  },
   "tagline": "<one-sentence strategy summary>",
   "platformContext": {
     "whatItDoesToday": "<current product/platform value proposition>",
@@ -223,9 +255,42 @@ Write a model answer for this question. Return ONLY valid JSON matching this exa
     "tradeoff": "<what we sacrifice by not prioritizing others>",
     "mitigation": "<how we address other segments later>"
   },
+  "problemAnalysis": {
+    "psychologicalProblems": ["<fear/frustration/anxiety/aspiration — with pain points>"],
+    "functionalProblems": ["<task/efficiency/utility problem — with pain points>"],
+    "behavioralProblems": ["<habit/friction/pattern problem — with pain points>"],
+    "prioritizedProblem": "<the ONE problem to focus on>",
+    "howPrioritized": "<HOW you chose this — what criteria? impact vs frequency vs severity>",
+    "whyThisProblem": "<WHY this problem matters most for this user and platform>"
+  },
+  "solutionBrainstorm": [
+    {
+      "name": "<solution name>",
+      "description": "<what it does — 1-2 sentences>",
+      "prosAndCons": "<quick pros/cons>"
+    }
+  ],
+  "solutionPrioritization": {
+    "chosenSolution": "<name of chosen solution>",
+    "howPrioritized": "<criteria used: impact, feasibility, alignment, differentiation>",
+    "whyThisWins": "<what makes it better than alternatives>",
+    "risks": [
+      {
+        "risk": "<what could go wrong>",
+        "type": "<technical|adoption|competitive|organizational>",
+        "mitigation": "<how to address it>"
+      }
+    ]
+  },
+  "mvpDesign": {
+    "coreFeatures": ["<must-have feature 1>", "<feature 2>", "<feature 3>"],
+    "explicitExclusions": ["<what's OUT and why>"],
+    "successCriteria": "<how we know MVP succeeded — metrics framework, not specific numbers>",
+    "learningGoals": "<what we want to learn before expanding>"
+  },
   "steps": [
     {
-      "number": <step number>,
+      "number": 1,
       "title": "<step name from the framework>",
       "why": "<why this step matters — what it signals to the interviewer>",
       "what": "<what to actually say or do at this step>",
@@ -236,7 +301,7 @@ Write a model answer for this question. Return ONLY valid JSON matching this exa
   "watchOut": ["<pitfall 1>", "<pitfall 2>"]
 }
 
-Include 2-3 segments. The platformContext field is REQUIRED and comes BEFORE segmentAnalysis. Include all 7 framework steps.`;
+Include 2-3 segments, 3-4 brainstormed solutions, and 2-3 risks. Include all 7 framework steps.`;
 
   const userMessage = `**Question:** ${question}`;
 

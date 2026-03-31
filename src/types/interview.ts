@@ -108,10 +108,67 @@ export interface PlatformContext {
   dependencies: string;           // Teams, products, or infrastructure this touches
 }
 
+// New: Opening reflection for product design
+export interface OpeningReflection {
+  spaceContext: string;           // What's interesting/challenging about this space
+  whyItMatters: string;           // Why this company should care
+  initialAngle: string;           // Your hypothesis or unique perspective
+}
+
+// New: Comprehensive problem analysis
+export interface ProblemAnalysis {
+  psychologicalProblems: string[];  // Fears, frustrations, anxieties, aspirations + pain points
+  functionalProblems: string[];     // Task/efficiency/utility problems + pain points
+  behavioralProblems: string[];     // Habit/friction/pattern problems + pain points
+  prioritizedProblem: string;       // The ONE problem to focus on
+  howPrioritized: string;           // HOW you chose this (criteria used)
+  whyThisProblem: string;           // WHY this problem matters most
+}
+
+// New: Solution brainstorm entry
+export interface BrainstormedSolution {
+  name: string;
+  description: string;
+  prosAndCons: string;
+}
+
+// New: Risk entry
+export interface SolutionRisk {
+  risk: string;
+  type: "technical" | "adoption" | "competitive" | "organizational";
+  mitigation: string;
+}
+
+// New: Solution prioritization
+export interface SolutionPrioritization {
+  chosenSolution: string;
+  howPrioritized: string;         // Criteria used
+  whyThisWins: string;            // What makes it better
+  risks: SolutionRisk[];
+}
+
+// New: MVP design
+export interface MvpDesign {
+  coreFeatures: string[];
+  explicitExclusions: string[];
+  successCriteria: string;
+  learningGoals: string;
+}
+
 export interface ModelAnswer {
+  // New: Opening reflection (product design)
+  openingReflection?: OpeningReflection;
   tagline: string;
   platformContext?: PlatformContext;
   segmentAnalysis?: SegmentAnalysis;
+  // New: Problem analysis (product design)
+  problemAnalysis?: ProblemAnalysis;
+  // New: Solution brainstorming (product design)
+  solutionBrainstorm?: BrainstormedSolution[];
+  // New: Solution prioritization with risks (product design)
+  solutionPrioritization?: SolutionPrioritization;
+  // New: MVP design (product design)
+  mvpDesign?: MvpDesign;
   steps: ModelStep[];
   keyInsights: string[];
   watchOut: string[];

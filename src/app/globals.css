@@ -36,6 +36,8 @@
   --animate-slide-down: slide-down 300ms ease-out;
   --animate-fade-in: fade-in 200ms ease-out;
   --animate-scale-in: scale-in 200ms ease-out;
+  --animate-slide-in-right: slide-in-right 300ms ease-out;
+  --animate-slide-out-right: slide-out-right 200ms ease-in;
 
   @keyframes message-in {
     0% { opacity: 0; transform: translateY(8px); }
@@ -55,6 +57,16 @@
   @keyframes scale-in {
     0% { opacity: 0; transform: scale(0.95); }
     100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes slide-in-right {
+    0% { opacity: 0; transform: translateX(100%); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slide-out-right {
+    0% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(100%); }
   }
 }
 

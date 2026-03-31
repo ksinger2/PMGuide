@@ -6,13 +6,23 @@ import { test, expect } from "@playwright/test";
 
 const completeProfile = {
   name: "Test User",
-  role: "Product Manager",
-  company: "Test Corp",
-  yearsExperience: "5",
+  currentRole: "Product Manager",
+  currentCompany: "Test Corp",
+  yearsExperience: 5,
   companyTypes: ["B2B SaaS"],
-  productsShipped: "3",
-  keyMetrics: "DAU, Revenue",
+  productsShipped: [
+    { name: "Product A", description: "A product", impact: "Grew DAU 20%" },
+    { name: "Product B", description: "B product", impact: "Increased revenue" },
+    { name: "Product C", description: "C product", impact: "Reduced churn" },
+  ],
+  keyMetrics: ["DAU", "Revenue"],
   frameworks: ["RICE"],
+  skillsAssessment: null,
+  goalRole: "Senior PM",
+  industryPreferences: null,
+  companyStagePreferences: null,
+  workStylePreferences: null,
+  learningStyle: null,
 };
 
 const mockUploadData = {
@@ -134,7 +144,8 @@ async function setupResumePage(
     skipGenerate?: boolean;
   }
 ) {
-  await page.goto("/resume");
+  // Navigate to a blank page first to set up localStorage before the resume page loads
+  await page.goto("/");
   await page.evaluate(
     ({ profile, upload, critique, generate, branches, activeBranchId, skipGenerate }) => {
       localStorage.setItem("pmguide-profile", JSON.stringify(profile));
@@ -160,8 +171,14 @@ async function setupResumePage(
       skipGenerate: opts?.skipGenerate,
     }
   );
-  await page.reload();
+
+  // Now navigate to resume page - localStorage is already set
+  await page.goto("/resume");
   await page.waitForLoadState("networkidle");
+
+  // Wait for the upload summary to appear - this proves localStorage data was hydrated
+  // The upload summary shows the filename, which only renders when uploadData is loaded
+  await page.getByText("resume.pdf").waitFor({ state: "visible", timeout: 10000 });
 }
 
 // ---------------------------------------------------------------------------

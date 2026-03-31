@@ -24,7 +24,7 @@ export const TASK_OVERRIDES: Partial<
   "resume-critique": { temperature: 0.0 },
   "interview-generate": { temperature: 0.8, maxTokens: 200 },
   "interview-grade": { temperature: 0.3, maxTokens: 1200 },
-  "interview-model": { temperature: 0.5, maxTokens: 2000 },
+  "interview-model": { temperature: 0.5, maxTokens: 4500 },
   "negotiate-scenario": { temperature: 0.6, maxTokens: 1500 },
   "negotiate-chat": { temperature: 0.4, maxTokens: 800 },
   "negotiate-evaluate": { temperature: 0.2, maxTokens: 800 },

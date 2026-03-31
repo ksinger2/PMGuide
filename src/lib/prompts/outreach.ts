@@ -82,13 +82,20 @@ Subject: [lowercase subject line, under 40 chars]
 ---END---`,
 
     linkedin: `## Format: LinkedIn Message
-For connection requests: UNDER 200 characters total. This is tiny. Every word must earn its place.
-For InMail or messages to existing connections: under 400 characters.
-Target: 25-50 words. The shorter you go, the higher the response rate.
+
+CRITICAL CHARACTER LIMITS (non-negotiable):
+- Connection requests: MAXIMUM 200 characters. Count every character including spaces.
+- InMail/existing connections: MAXIMUM 400 characters.
+
+This means 2-3 SHORT sentences max for connection requests. If your message exceeds 200 characters, you MUST cut it down. Delete pleasantries, merge sentences, use shorter words.
+
+Example connection request (187 chars):
+"Hi Sarah, your talk on payment APIs was great. I'm a PM exploring Stripe opportunities. Would you be open to a 15-min chat about your team? No worries if not."
+
 No bold/italic formatting. It looks templated.
 
 ---MESSAGE---
-[the full message text, using recipient's name if provided]
+[the full message text — COUNT CHARACTERS, must be under 200 for connection requests]
 ---END---`,
   };
 
@@ -183,7 +190,7 @@ ALWAYS structure your response in two parts:
 3. NO em dashes. Use commas, periods, or semicolons.
 4. First person only. You ARE the candidate. Never say "you should say" or "consider saying."
 5. Lead with THEM. The first sentence must be about the recipient or their work, NOT about the sender. The only exception is referrals where you open with the shared connection.
-6. HARD WORD LIMITS. Email: 50-75 words max. LinkedIn: 25-50 words max. Count them. If you're over, cut.
+6. HARD LIMITS (count them!). Email: 50-75 words max. LinkedIn connection requests: 200 CHARACTERS max (not words!). LinkedIn InMail: 400 characters max. If you're over, cut ruthlessly.
 7. The ask must be SMALL and SPECIFIC. "15-minute chat about X" not "any opportunities on your team."
 8. ONE ASK per message. Never combine referral + coffee + resume review. Pick one.
 9. Include a graceful out. Always give the recipient an easy way to say no without awkwardness.
