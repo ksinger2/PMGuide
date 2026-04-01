@@ -98,7 +98,335 @@ Include ALL rubric signals for this question type.`;
 // Model answer prompt
 // ---------------------------------------------------------------------------
 
-export function buildModelAnswerPrompt(
+/**
+ * Build the 13-step Product Design model answer prompt
+ */
+function buildProductDesignModelAnswerPrompt(
+  company: InterviewCompany | "any",
+  question: string,
+  profile?: Partial<UserProfile>
+): { systemPrompt: string; userMessage: string } {
+  const companyContext =
+    company !== "any"
+      ? `\n\nCompany: ${company.charAt(0).toUpperCase() + company.slice(1)}\n${companyGuides[company]}`
+      : "";
+
+  const yearsExp = profile?.yearsExperience ?? 3;
+  const pmLevel = yearsExp >= 6 ? "senior" : "junior";
+
+  const levelGuidance = pmLevel === "senior"
+    ? `
+## ANSWER DEPTH: SENIOR PM
+
+This model answer targets a senior PM candidate. Expectations:
+- Connect features to business strategy (revenue, retention, competitive moat)
+- Discuss cross-functional dependencies (Eng, Design, Legal, Ops, Data)
+- Consider market positioning and long-term platform effects
+- Address organizational constraints and stakeholder alignment
+- Frame metrics at the business level — describe the TYPE of metric, not specific numbers
+- Show systems thinking — how changes ripple across the product ecosystem`
+    : `
+## ANSWER DEPTH: JUNIOR PM
+
+This model answer targets a junior PM candidate. Expectations:
+- Focus on user problems and feature solutions
+- Show clear user flows and interaction design thinking
+- Frame success metrics at the feature level (engagement rate, conversion, task completion)
+- Demonstrate structured thinking (framework application)
+- Consider basic trade-offs (scope, timeline, resources)
+- Prioritize clarity and execution over strategic depth`;
+
+  const systemPrompt = `${skillPersona}
+
+You are in teaching mode. You are the Product Design specialist. Your job is to write a model answer using the 13-step formula.
+${companyContext}
+${levelGuidance}
+
+## THE 13-STEP PRODUCT DESIGN FORMULA
+
+This is NOT a checklist — it's a structured conversation. Each step should flow naturally into the next, with EXPLICIT PRIORITIZATION MATRICES at decision points.
+
+### Step 1: LANDSCAPE — Why does this question matter?
+Set the stage before diving in:
+- Industry context: What's happening in this space?
+- Company benefit: Why should this company care?
+- Transformative potential: What could change if done well?
+
+### Step 2: MISSION — Guiding statement
+A single sentence that anchors the rest of your answer. This is your north star.
+
+### Step 3: ECOSYSTEM — ALL stakeholders
+Map the full ecosystem (not just end users):
+- Users, creators, providers, advertisers, partners, company itself
+- For each: name, role, incentives, current pain
+- How do stakeholders interact and depend on each other?
+
+### Step 4: PRIORITIZE STAKEHOLDER GROUP — WITH SCORING MATRIX
+**CRITICAL: You must evaluate ALL stakeholders with explicit 1-5 scores.**
+
+For EACH stakeholder, score on:
+- **TAM (1-5)**: Market size/value potential + rationale
+- **Underserved (1-5)**: Gap in current solutions + rationale
+- **Mission (1-5)**: Alignment with company mission + rationale
+- **Total**: Sum of scores
+
+Then pick the winner and explain the tradeoff.
+
+### Step 5: SEGMENT THE GROUP
+Divide the chosen stakeholder group into 3 user segments:
+- Use behavioral lenses (skill, motivation, role, usage, context)
+- For each: name, description, key characteristic, current behavior
+- ❌ AVOID demographics (age, income, geography)
+
+### Step 6: PRIORITIZE SEGMENT — WITH SCORING MATRIX
+**CRITICAL: You must evaluate ALL segments with explicit 1-5 scores.**
+
+For EACH segment, score on:
+- **TAM (1-5)**: Segment size/value + rationale
+- **Underserved (1-5)**: Gap in current solutions + rationale
+- **Mission (1-5)**: Alignment with mission + rationale
+- **Total**: Sum of scores
+
+Then pick the winner and explain the tradeoff.
+
+### Step 7: PAIN POINTS — 3 dimensions with vivid empathy
+This is the heart of the answer. Make the pain VIVID:
+
+**Psychological** — Fears, frustrations, anxieties, aspirations
+- What emotion? (fear, frustration, anxiety, aspiration)
+- How intense? (low/medium/high)
+
+**Behavioral** — Habits, friction, patterns
+- Current workaround?
+- Frequency? (rare/occasional/frequent/constant)
+
+**Functional** — Tasks, efficiency, utility
+- Impact? (time, money, effort)
+- Job-to-be-done framing
+
+### Step 8: PRIORITIZE PAIN POINT — WITH SCORING MATRIX
+**CRITICAL: You must evaluate ALL pain points (from all 3 dimensions) with explicit 1-5 scores.**
+
+For EACH pain point, score on:
+- **Severity (1-5)**: How bad is it + rationale
+- **Frequency (1-5)**: How often it happens + rationale
+- **Mission (1-5)**: Alignment with mission + rationale
+- **Total**: Sum of scores
+
+Then pick the winner with synthesis.
+
+### Step 9: SOLUTION IDEAS — 3-4 novel/clever approaches
+Show breadth before depth:
+- Different technical approaches
+- Different UX paradigms
+- Build vs buy vs partner
+- What's NOVEL or CLEVER about each?
+
+### Step 10: PRIORITIZE SOLUTION — WITH SCORING MATRIX
+**CRITICAL: You must evaluate ALL solutions with explicit 1-5 scores.**
+
+For EACH solution, score on:
+- **Impact (1-5)**: User/business value + rationale
+- **Effort (1-5)**: Feasibility (5=easy, 1=hard) + rationale
+- **Differentiation (1-5)**: Competitive advantage + rationale
+- **Total**: Sum of scores
+
+Then pick the winner with synthesis.
+
+### Step 11: RISKS & MITIGATIONS — Standalone section
+For each risk:
+- Type: technical, adoption, competitive, organizational
+- Severity: low/medium/high
+- Mitigation
+
+### Step 12: MVP + METRICS
+- Core features (IN)
+- Explicit exclusions (OUT)
+- Success metrics:
+  - North star metric (one primary metric)
+  - Leading indicators (early signals)
+  - Guardrails (what we don't want to hurt)
+- Learning goals
+
+### Step 13: SUMMARY
+- 2-3 sentence recap
+- The ONE key insight to remember
+- Primary watch-out
+
+## CRITICAL GUIDELINES
+
+1. **PRIORITIZATION MATRICES ARE MANDATORY**: At steps 4, 6, 8, and 10, you MUST provide explicit 1-5 scores for ALL options with rationale for each score. This is non-negotiable.
+
+2. **VIVID PAIN POINTS**: Don't just list problems — make me FEEL them. Use specific scenarios, emotions, frustrations.
+
+3. **NO FAKE NUMBERS**: Never invent TAM figures, percentages, or specific metrics. Describe the TYPE of metric and WHY it matters.
+
+4. **FLOW, NOT CHECKLIST**: Each step should build on the previous. Reference earlier decisions.
+
+## Instructions
+
+Write a model answer for this Product Design question. Return ONLY valid JSON matching this exact schema:
+
+{
+  "landscape": {
+    "industryContext": "<what's happening in this space — 2-3 sentences>",
+    "companyBenefit": "<why this company should care>",
+    "transformativePotential": "<what could change if done well>"
+  },
+  "mission": "<one-sentence guiding mission that anchors the answer>",
+  "ecosystem": {
+    "stakeholders": [
+      {
+        "name": "<stakeholder name, e.g., 'Creators', 'Advertisers'>",
+        "role": "<what they do in the ecosystem>",
+        "incentives": "<what they want>",
+        "currentPain": "<what frustrates them>"
+      }
+    ],
+    "ecosystemDynamics": "<how stakeholders interact/depend on each other>"
+  },
+  "stakeholderPrioritization": {
+    "evaluations": [
+      {
+        "name": "<stakeholder name>",
+        "tamScore": "<1-5>",
+        "tamRationale": "<why this score>",
+        "underservedScore": "<1-5>",
+        "underservedRationale": "<why this score>",
+        "missionScore": "<1-5>",
+        "missionRationale": "<why this score>",
+        "totalScore": "<sum of 3 scores>"
+      }
+    ],
+    "chosen": "<which stakeholder group — must match highest totalScore>",
+    "whyChosen": "<synthesis of why this stakeholder wins>",
+    "tradeoff": "<what we sacrifice by not prioritizing others>"
+  },
+  "segmentation": [
+    {
+      "name": "<behavioral name — NOT demographic>",
+      "description": "<who they are>",
+      "keyCharacteristic": "<what defines this segment>",
+      "currentBehavior": "<how they solve this today>"
+    }
+  ],
+  "segmentPrioritization": {
+    "evaluations": [
+      {
+        "name": "<segment name>",
+        "tamScore": "<1-5>",
+        "tamRationale": "<why this score>",
+        "underservedScore": "<1-5>",
+        "underservedRationale": "<why this score>",
+        "missionScore": "<1-5>",
+        "missionRationale": "<why this score>",
+        "totalScore": "<sum of 3 scores>"
+      }
+    ],
+    "chosen": "<which segment — must match highest totalScore>",
+    "whyChosen": "<synthesis of why this segment wins>",
+    "tradeoff": "<what we sacrifice>"
+  },
+  "painPoints": {
+    "psychological": [
+      {
+        "pain": "<the pain point — vivid and specific>",
+        "emotion": "<fear|frustration|anxiety|aspiration>",
+        "intensity": "<low|medium|high>"
+      }
+    ],
+    "behavioral": [
+      {
+        "pain": "<the pain point>",
+        "currentWorkaround": "<how they cope today>",
+        "frequency": "<rare|occasional|frequent|constant>"
+      }
+    ],
+    "functional": [
+      {
+        "pain": "<the pain point>",
+        "impact": "<what it costs them — time, money, effort>",
+        "jtbd": "<job-to-be-done framing>"
+      }
+    ]
+  },
+  "painPointPrioritization": {
+    "evaluations": [
+      {
+        "pain": "<the pain point text>",
+        "type": "<psychological|behavioral|functional>",
+        "severityScore": "<1-5>",
+        "severityRationale": "<why this score>",
+        "frequencyScore": "<1-5>",
+        "frequencyRationale": "<why this score>",
+        "missionScore": "<1-5>",
+        "missionRationale": "<why this score>",
+        "totalScore": "<sum of 3 scores>"
+      }
+    ],
+    "chosen": "<which pain point — must match highest totalScore>",
+    "whyChosen": "<synthesis of why this pain point wins>"
+  },
+  "solutions": [
+    {
+      "name": "<solution name>",
+      "description": "<what it does — 1-2 sentences>",
+      "novelty": "<what's clever or different>",
+      "prosAndCons": "<quick pros/cons>"
+    }
+  ],
+  "solutionPrioritization": {
+    "evaluations": [
+      {
+        "name": "<solution name>",
+        "impactScore": "<1-5>",
+        "impactRationale": "<why this score>",
+        "effortScore": "<1-5 where 5=easy>",
+        "effortRationale": "<why this score>",
+        "differentiationScore": "<1-5>",
+        "differentiationRationale": "<why this score>",
+        "totalScore": "<sum of 3 scores>"
+      }
+    ],
+    "chosen": "<which solution — must match highest totalScore>",
+    "whyChosen": "<synthesis of why this solution wins>"
+  },
+  "risks": [
+    {
+      "risk": "<what could go wrong>",
+      "type": "<technical|adoption|competitive|organizational>",
+      "severity": "<low|medium|high>",
+      "mitigation": "<how to address it>"
+    }
+  ],
+  "mvpAndMetrics": {
+    "coreFeatures": ["<must-have feature 1>", "<feature 2>", "<feature 3>"],
+    "explicitExclusions": ["<what's OUT and why>"],
+    "successMetrics": {
+      "northStar": "<primary metric — type, not number>",
+      "leading": ["<early indicator 1>", "<early indicator 2>"],
+      "guardrails": ["<metric we don't want to hurt>"]
+    },
+    "learningGoals": "<what we want to learn before expanding>"
+  },
+  "summary": {
+    "recap": "<2-3 sentence recap of the answer>",
+    "keyInsight": "<the ONE thing to remember>",
+    "watchOut": "<primary risk or pitfall>"
+  }
+}
+
+Include 3-5 stakeholders, 3 segments, 2-3 pain points per dimension, 3-4 solutions, and 2-3 risks.`;
+
+  const userMessage = `**Question:** ${question}`;
+
+  return { systemPrompt, userMessage };
+}
+
+/**
+ * Build the generic model answer prompt (for non-product-design types)
+ */
+function buildGenericModelAnswerPrompt(
   company: InterviewCompany | "any",
   questionType: InterviewQuestionType,
   question: string,
@@ -112,7 +440,6 @@ export function buildModelAnswerPrompt(
       ? `\n\nCompany: ${company.charAt(0).toUpperCase() + company.slice(1)}\n${companyGuides[company]}`
       : "";
 
-  // Determine PM level from profile
   const yearsExp = profile?.yearsExperience ?? 3;
   const pmLevel = yearsExp >= 6 ? "senior" : "junior";
 
@@ -121,11 +448,11 @@ export function buildModelAnswerPrompt(
 ## ANSWER DEPTH: SENIOR PM
 
 This model answer targets a senior PM candidate. Expectations:
-- Connect features to business strategy (how does this drive revenue, retention, or competitive moat?)
+- Connect features to business strategy (revenue, retention, competitive moat)
 - Discuss cross-functional dependencies (Eng, Design, Legal, Ops, Data)
 - Consider market positioning and long-term platform effects
 - Address organizational constraints and stakeholder alignment
-- Frame metrics at the business level (retention, revenue impact, market share) — describe the TYPE of metric, not specific numbers
+- Frame metrics at the business level — describe the TYPE of metric, not specific numbers
 - Show systems thinking — how changes ripple across the product ecosystem`
     : `
 ## ANSWER DEPTH: JUNIOR PM
@@ -147,147 +474,11 @@ ${companyContext}
 ${framework}
 ${levelGuidance}
 
-## CRITICAL: Structure for Product Design Answers
-
-Strong candidates demonstrate DEPTH at each step, not just coverage. The answer should feel like a thoughtful conversation, not a checklist.
-
-### Opening: Set the Stage (Before diving in)
-Start by reflecting on WHY this question matters:
-- What's interesting or challenging about this space?
-- Why would this company care about solving this?
-- What's your initial hypothesis or angle?
-
-This shows strategic thinking before jumping into the framework.
-
-### 1. PLATFORM CONTEXT (Understand the Ecosystem FIRST)
-Before anything else, establish:
-- What the platform/product does today and its core value proposition
-- The company's strategic priorities (growth, retention, monetization, new markets)
-- How this feature would fit into the existing product ecosystem
-- Key dependencies (other teams, products, infrastructure)
-
-### 2. SEGMENTATION (MECE) — Based on Platform Context
-
-Choose the lens that creates the most ACTIONABLE differences:
-| Lens | When to Use | Example Segments |
-|------|-------------|------------------|
-| **Skill/Experience** | Learning products, tools | Beginners, Power Users, Experts |
-| **Motivation** | Social/entertainment products | Learners, Socializers, Achievers |
-| **Role** | Multi-stakeholder products | Parents, Children, Teachers |
-| **Usage Pattern** | Collaboration/consumption | Individual vs Group, Creator vs Consumer |
-| **Context** | Time-sensitive products | Commuters, At-home, On-the-go |
-
-❌ AVOID: Age, income, company size, geography, specific market sizes
-✅ USE: Behavioral patterns, motivations, usage contexts, skill levels
-
-### 3. COMPREHENSIVE PROBLEM/NEEDS ANALYSIS
-
-For your prioritized segment, analyze problems across THREE dimensions:
-1. **Psychological** — Fears, frustrations, aspirations, anxieties, emotional needs
-2. **Functional** — Tasks they're trying to accomplish, efficiency gaps, utility needs
-3. **Behavioral** — Current habits, friction points, workarounds, patterns
-
-For each dimension, identify the PAIN POINTS — what hurts most?
-
-Then PRIORITIZE: Which problem is most critical?
-- **HOW you prioritized** — What criteria did you use? (impact vs frequency vs severity)
-- **WHY this problem** — Why does this matter most for this user and this platform?
-
-### 4. SOLUTION BRAINSTORMING
-
-Generate 3-4 distinct solution approaches. Show breadth before depth:
-- Different technical approaches
-- Different UX paradigms
-- Build vs buy vs partner options
-- Incremental vs transformative options
-
-### 5. SOLUTION PRIORITIZATION WITH RISK ANALYSIS
-
-Pick your top solution. Explain:
-- **HOW you prioritized** — What criteria? (impact, feasibility, alignment, differentiation)
-- **WHY this solution wins** — What makes it better than alternatives?
-- **RISKS** — What could go wrong? Technical, adoption, competitive, organizational
-- **MITIGATIONS** — How would you address each risk?
-
-### 6. MVP DESIGN
-
-Define the Minimum Viable Product:
-- Core features (what's IN)
-- Explicit exclusions (what's OUT and why)
-- Success criteria for MVP
-- What you'd learn before expanding
-
-### 7. METRICS: Framework Over Fabrication
-
-Do NOT invent specific numbers. Instead:
-- Name the TYPE of metric: "engagement rate," "conversion to paid"
-- Explain WHY that metric matters
-- Describe directional impact, not specific targets
-
 ## Instructions
 Write a model answer for this question. Return ONLY valid JSON matching this exact schema:
 
 {
-  "openingReflection": {
-    "spaceContext": "<what's interesting/challenging about this space — 2-3 sentences>",
-    "whyItMatters": "<why this company should care about solving this>",
-    "initialAngle": "<your hypothesis or unique perspective on the problem>"
-  },
   "tagline": "<one-sentence strategy summary>",
-  "platformContext": {
-    "whatItDoesToday": "<current product/platform value proposition>",
-    "strategicPriorities": "<company's key goals this feature could serve>",
-    "featureFit": "<how this feature fits into the existing ecosystem>",
-    "dependencies": "<teams, products, or infrastructure this touches>"
-  },
-  "segmentAnalysis": {
-    "segmentationLens": "<skill|motivation|role|usage|context>",
-    "whyThisLens": "<why this lens is most actionable for THIS platform>",
-    "segments": [
-      {
-        "name": "<behavioral name — NOT demographic>",
-        "description": "<who they are + their context>",
-        "keyNeed": "<primary unmet need>",
-        "currentWorkaround": "<how they solve this today>"
-      }
-    ],
-    "prioritized": "<which segment and WHY — tie back to platform priorities>",
-    "tradeoff": "<what we sacrifice by not prioritizing others>",
-    "mitigation": "<how we address other segments later>"
-  },
-  "problemAnalysis": {
-    "psychologicalProblems": ["<fear/frustration/anxiety/aspiration — with pain points>"],
-    "functionalProblems": ["<task/efficiency/utility problem — with pain points>"],
-    "behavioralProblems": ["<habit/friction/pattern problem — with pain points>"],
-    "prioritizedProblem": "<the ONE problem to focus on>",
-    "howPrioritized": "<HOW you chose this — what criteria? impact vs frequency vs severity>",
-    "whyThisProblem": "<WHY this problem matters most for this user and platform>"
-  },
-  "solutionBrainstorm": [
-    {
-      "name": "<solution name>",
-      "description": "<what it does — 1-2 sentences>",
-      "prosAndCons": "<quick pros/cons>"
-    }
-  ],
-  "solutionPrioritization": {
-    "chosenSolution": "<name of chosen solution>",
-    "howPrioritized": "<criteria used: impact, feasibility, alignment, differentiation>",
-    "whyThisWins": "<what makes it better than alternatives>",
-    "risks": [
-      {
-        "risk": "<what could go wrong>",
-        "type": "<technical|adoption|competitive|organizational>",
-        "mitigation": "<how to address it>"
-      }
-    ]
-  },
-  "mvpDesign": {
-    "coreFeatures": ["<must-have feature 1>", "<feature 2>", "<feature 3>"],
-    "explicitExclusions": ["<what's OUT and why>"],
-    "successCriteria": "<how we know MVP succeeded — metrics framework, not specific numbers>",
-    "learningGoals": "<what we want to learn before expanding>"
-  },
   "steps": [
     {
       "number": 1,
@@ -301,9 +492,24 @@ Write a model answer for this question. Return ONLY valid JSON matching this exa
   "watchOut": ["<pitfall 1>", "<pitfall 2>"]
 }
 
-Include 2-3 segments, 3-4 brainstormed solutions, and 2-3 risks. Include all 7 framework steps.`;
+Include all framework steps with specific examples for this question.`;
 
   const userMessage = `**Question:** ${question}`;
 
   return { systemPrompt, userMessage };
+}
+
+/**
+ * Main entry point — routes to product design or generic prompt
+ */
+export function buildModelAnswerPrompt(
+  company: InterviewCompany | "any",
+  questionType: InterviewQuestionType,
+  question: string,
+  profile?: Partial<UserProfile>
+): { systemPrompt: string; userMessage: string } {
+  if (questionType === "product-design") {
+    return buildProductDesignModelAnswerPrompt(company, question, profile);
+  }
+  return buildGenericModelAnswerPrompt(company, questionType, question, profile);
 }

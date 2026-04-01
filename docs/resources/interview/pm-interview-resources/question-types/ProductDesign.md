@@ -1,39 +1,132 @@
 # Product Design Questions
 
 ## What This Tests
-User empathy, feature prioritization, product vision, business acumen, creativity.
+User empathy, feature prioritization, product vision, business acumen, creativity, stakeholder analysis, and structured decision-making.
 
 ---
 
-## 7-Step Framework
+## 13-Step Formula
 
-1. **Clarify** — Ask clarifying questions to understand scope and constraints. What's in/out of scope? What resources exist? What's the timeline?
-2. **Platform Context** — Understand the ecosystem FIRST. What does this product/platform do today? Who does it serve? What are its strategic priorities? How would this feature fit into the broader product? What dependencies exist (other teams, products, infrastructure)?
-3. **Define the user** — BASED ON the platform context, identify 2-3 user segments using behavioral lenses (motivation, skill level, usage pattern, role, context). Pick one to prioritize with clear reasoning. Acknowledge what you're trading off.
-4. **Define the problem** — Articulate pain points from the prioritized user's POV. What's their key unmet need? How do they solve this today (current workaround)?
-5. **Brainstorm solutions** — Go broad before narrowing. Consider ecosystem implications — how do solutions affect other products, features, or user segments?
-6. **Prioritize features** — Define MVP by impact, effort, and risk. Show trade-offs: what are we NOT building and why?
-7. **Evaluate & recap** — Success metrics (use frameworks like engagement/retention/conversion, not specific numbers), potential risks, how this strengthens the platform
+This is NOT a checklist — it's a structured conversation. Each step builds on the previous, with explicit prioritization rationale at decision points.
+
+### Step 1: LANDSCAPE — Why does this question matter?
+Set the stage before diving in:
+- **Industry context**: What's happening in this space?
+- **Company benefit**: Why should this company care?
+- **Transformative potential**: What could change if done well?
+
+### Step 2: MISSION — Guiding statement
+A single sentence that anchors the rest of your answer. This is your north star.
+
+### Step 3: ECOSYSTEM — ALL stakeholders
+Map the full ecosystem (not just end users):
+- Users, creators, providers, advertisers, partners, company itself
+- For each: name, role, incentives, current pain
+- How do stakeholders interact and depend on each other?
+
+### Step 4: PRIORITIZE STAKEHOLDER GROUP
+Pick ONE stakeholder group. Justify with:
+- TAM reasoning (qualitative, not fake numbers)
+- Underserved needs
+- Mission alignment
+- **State the tradeoff**: What are we NOT prioritizing?
+
+### Step 5: SEGMENT THE GROUP
+Divide the chosen stakeholder group into 3 user segments:
+- Use behavioral lenses (skill, motivation, role, usage, context)
+- For each: name, description, key characteristic, current behavior
+- **AVOID**: Demographics (age, income, geography)
+
+### Step 6: PRIORITIZE SEGMENT
+Pick ONE segment. Justify with:
+- TAM reasoning
+- Underserved needs
+- Mission alignment
+- **State the tradeoff**
+
+### Step 7: PAIN POINTS — 3 dimensions with vivid empathy
+This is the heart of the answer. Make the pain VIVID:
+
+| Dimension | Focus | Details |
+|-----------|-------|---------|
+| **Psychological** | Fears, frustrations, anxieties, aspirations | Emotion + intensity (low/medium/high) |
+| **Behavioral** | Habits, friction, patterns | Current workaround + frequency |
+| **Functional** | Tasks, efficiency, utility | Impact + JTBD framing |
+
+### Step 8: PRIORITIZE PAIN POINT
+Pick ONE pain point. Justify with:
+- Mission alignment
+- Severity
+- Frequency
+
+### Step 9: SOLUTION IDEAS — 3-4 novel/clever approaches
+Show breadth before depth:
+- Different technical approaches
+- Different UX paradigms
+- Build vs buy vs partner
+- What's NOVEL or CLEVER about each?
+
+### Step 10: PRIORITIZE SOLUTION
+Pick ONE. Justify with:
+- Impact rationale
+- Effort/feasibility rationale
+- Why this wins over alternatives
+
+### Step 11: RISKS & MITIGATIONS — Standalone section
+For each risk:
+- **Type**: technical, adoption, competitive, organizational
+- **Severity**: low/medium/high
+- **Mitigation**: How to address it
+
+### Step 12: MVP + METRICS
+- **Core features** (IN)
+- **Explicit exclusions** (OUT)
+- **Success metrics**:
+  - North star metric (one primary metric)
+  - Leading indicators (early signals)
+  - Guardrails (what we don't want to hurt)
+- **Learning goals**
+
+### Step 13: SUMMARY
+- 2-3 sentence recap
+- The ONE key insight to remember
+- Primary watch-out
+
+---
+
+## Critical Guidelines
+
+1. **VIVID PAIN POINTS**: Don't just list problems — make the interviewer FEEL them. Use specific scenarios, emotions, frustrations.
+
+2. **EXPLICIT PRIORITIZATION**: At steps 4, 6, 8, and 10, you MUST explain HOW and WHY you prioritized. No hand-waving.
+
+3. **NO FAKE NUMBERS**: Never invent TAM figures, percentages, or specific metrics. Describe the TYPE of metric and WHY it matters.
+
+4. **FLOW, NOT CHECKLIST**: Each step should build on the previous. Reference earlier decisions.
 
 ---
 
 ## Common Pitfalls
+
 - Jumping straight to solutions without defining the user
 - Staying too abstract — be specific
 - Ignoring business context
-- Failing to prioritize
+- Failing to prioritize (or prioritizing without rationale)
 - Not discussing success metrics
-- **Treating "users" as monolithic** — always segment, compare, and justify your selection
-- **Ignoring ecosystem** — how does this affect other products, features, or user segments?
+- **Treating "users" as monolithic** — always segment, compare, and justify
+- **Ignoring ecosystem** — how does this affect other stakeholders?
 - **Hiding trade-offs** — every prioritization decision has a cost; name it
+- **Surface-level pain points** — make them emotional and vivid
 
 ---
 
 ## Tips
+
 - Start with the user, not the solution
 - Show passion for the product space
 - Use concrete examples and personas
 - Always tie features back to user needs AND business goals
+- Reference your mission throughout
 
 ---
 
@@ -75,7 +168,7 @@ User empathy, feature prioritization, product vision, business acumen, creativit
 ---
 
 ## Rubric Signals to Hit
-See `rubrics/Rubric.md` → Product Design Rubric
+See `rubrics/Rubric.md` -> Product Design Rubric
 
 Key signals:
 - **Business acumen** — tie to company goals and market
